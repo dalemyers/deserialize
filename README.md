@@ -1,6 +1,6 @@
 # deserialize
 
-A library to make deserialization easy.
+A library to make deserialization easy. To get started, just run `pip install deserialize`
 
 Without the library, if you want to convert:
 
