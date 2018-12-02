@@ -1,5 +1,6 @@
 """A module for deserializing data to Python objects."""
 
+import functools
 import typing
 from typing import Dict, List, Optional, Union
 
@@ -8,6 +9,34 @@ from typing import Dict, List, Optional, Union
 #pylint: disable=too-many-branches
 
 __version__ = "0.2"
+
+
+_KEY_MAP: Dict[Any, Dict[str, str]] = {}
+
+
+def key(property_name, key_name):
+    """A decorator function for mapping key names to properties."""
+
+    def store_key_map(class_reference):
+        """Store the key map."""
+        if _KEY_MAP.get(class_reference) is None:
+            _KEY_MAP[class_reference] = {}
+        _KEY_MAP[class_reference][property_name] = key_name
+        return class_reference
+
+    return store_key_map
+
+
+def _get_key(class_reference, property_name):
+    """Get the key for the given class and property name."""
+
+    class_map = _KEY_MAP.get(class_reference)
+
+    if class_map is None:
+        return property_name
+
+    return class_map.get(property_name, property_name)
+
 
 class DeserializeException(Exception):
     """Represents an error deserializing a value."""
@@ -33,7 +62,8 @@ def _deserialize_dict(class_reference, data):
     class_instance = class_reference()
 
     for attribute_name, attribute_type in hints.items():
-        property_value = data.get(attribute_name)
+        property_key = _get_key(class_reference, attribute_name)
+        property_value = data.get(property_key)
         property_type = type(property_value)
 
         try:
@@ -102,19 +132,19 @@ def _deserialize_dict(class_reference, data):
 
             result = {}
 
-            for key, value in property_value.items():
+            for item_key, item_value in property_value.items():
 
-                if type(key) != key_type:
-                    raise DeserializeException(f"Key '{key}' is type '{type(key)}' not '{key_type}'")
+                if type(item_key) != key_type:
+                    raise DeserializeException(f"Key '{item_key}' is type '{type(item_key)}' not '{key_type}'")
 
                 # If the types match, we can just set it and move on
-                if type(value) == value_type:
-                    result[key] = value
+                if type(item_value) == value_type:
+                    result[item_key] = item_value
                     continue
 
                 # We have to deserialize
-                item_deserialized = deserialize(value_type, value)
-                result[key] = item_deserialized
+                item_deserialized = deserialize(value_type, item_value)
+                result[item_key] = item_deserialized
 
             setattr(class_instance, attribute_name, result)
             continue

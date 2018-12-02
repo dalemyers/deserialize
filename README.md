@@ -2,6 +2,8 @@
 
 A library to make deserialization easy. To get started, just run `pip install deserialize`
 
+### How it used to be
+
 Without the library, if you want to convert:
 
 ```
@@ -38,6 +40,8 @@ class MyThing:
 
 my_instance = MyThing.from_json(json_data)
 ```
+
+### How it is now
 
 With `deserialize` all you need to do is this:
 
@@ -85,3 +89,18 @@ class TVShow:
     seasons: List[Season]
     creator: str
 ```
+
+## Advanced Usage
+
+### Custom Keys
+
+It may be that you want to name your properties in your object something different to what is in the data. This can be for readability reasons, or because you have to (such as if your data item is named `__class__`). This can be handled too. Simply use the `key` annotation as follows:
+
+```
+@deserialize.key("identifier", "id")
+class MyClass:
+    value: int
+    identifier: str
+```
+
+This will now assign the data with the key `id` to the field `identifier`. You can have multiple annotations to override multiple keys.
