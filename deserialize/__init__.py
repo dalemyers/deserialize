@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Union
 #pylint: disable=protected-access
 #pylint: disable=too-many-branches
 
-__version__ = "0.1"
+__version__ = "0.2"
 
 class DeserializeException(Exception):
     """Represents an error deserializing a value."""
