@@ -2,7 +2,7 @@
 
 import functools
 import typing
-from typing import Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 #pylint: disable=unidiomatic-typecheck
 #pylint: disable=protected-access
@@ -12,6 +12,7 @@ __version__ = "0.2"
 
 
 _KEY_MAP: Dict[Any, Dict[str, str]] = {}
+_PARSER_MAP: Dict[Any, Dict[str, Callable]] = {}
 
 
 def key(property_name, key_name):
@@ -36,6 +37,35 @@ def _get_key(class_reference, property_name):
         return property_name
 
     return class_map.get(property_name, property_name)
+
+
+def parser(key_name, parser_function):
+    """A decorator function for mapping parsers to key names."""
+
+    def store_parser_map(class_reference):
+        """Store the parser map."""
+        if _PARSER_MAP.get(class_reference) is None:
+            _PARSER_MAP[class_reference] = {}
+        _PARSER_MAP[class_reference][key_name] = parser_function
+        return class_reference
+
+    return store_parser_map
+
+
+def _get_parser(class_reference, key_name):
+    """Get the parser for the given class and keu name."""
+
+    def identity_parser(value):
+        """This parser does nothing. It's simply used as the default."""
+        return value
+
+    class_map = _PARSER_MAP.get(class_reference)
+
+    if class_map is None:
+        return identity_parser
+
+    return class_map.get(key_name, identity_parser)
+
 
 
 class DeserializeException(Exception):
@@ -63,7 +93,9 @@ def _deserialize_dict(class_reference, data):
 
     for attribute_name, attribute_type in hints.items():
         property_key = _get_key(class_reference, attribute_name)
-        property_value = data.get(property_key)
+        property_value_unparsed = data.get(property_key)
+        parser_function = _get_parser(class_reference, property_key)
+        property_value = parser_function(property_value_unparsed)
         property_type = type(property_value)
 
         try:
