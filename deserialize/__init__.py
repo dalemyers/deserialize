@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 #pylint: disable=protected-access
 #pylint: disable=too-many-branches
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 
 _KEY_MAP: Dict[Any, Dict[str, str]] = {}
