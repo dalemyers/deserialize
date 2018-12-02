@@ -17,10 +17,6 @@ class DeserializeException(Exception):
 def deserialize(class_reference, data):
     """Deserialize data to a Python object."""
 
-    def _is_base_type(value):
-        """Check if this is a base type that we don't have to do anything with."""
-        return type(value) in [int, float, str, bool]
-
     hints = typing.get_type_hints(class_reference)
 
     if len(hints) == 0:
@@ -78,13 +74,11 @@ def deserialize(class_reference, data):
             result = []
 
             for item in property_value:
-                if _is_base_type(item):
-                    if type(item) != list_content_type:
-                        raise DeserializeException(f"Unexpected type '{type(item)}' for list item '{item}'. Expected '{list_content_type}'")
-                    else:
-                        result.append(item)
+                if type(item) == list_content_type:
+                    result.append(item)
                 else:
-                    result.append(deserialize(list_content_type, item))
+                    attempted_instance = deserialize(list_content_type, item)
+                    result.append(attempted_instance)
 
             setattr(class_instance, attribute_name, result)
             continue
