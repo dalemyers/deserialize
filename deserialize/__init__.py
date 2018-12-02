@@ -16,6 +16,14 @@ class DeserializeException(Exception):
 
 def deserialize(class_reference, data):
     """Deserialize data to a Python object."""
+    if not isinstance(data, dict):
+        raise DeserializeException(f"Data must be a dictionary")
+
+    return _deserialize_dict(class_reference, data)
+
+
+def _deserialize_dict(class_reference, data):
+    """Deserialize a dictionary to a Python object."""
 
     hints = typing.get_type_hints(class_reference)
 
