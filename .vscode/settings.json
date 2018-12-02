@@ -1,0 +1,17 @@
+{
+    "files.exclude": {
+        "**/.mypy_cache": true,
+        "**/.pytest_cache": true,
+        ".cache/": true,
+        "bin/": true,
+        "include/": true,
+        "junit/": true,
+        "lib/": true,
+    },
+    "python.unitTest.pyTestArgs": [
+        "tests"
+    ],
+    "python.unitTest.unittestEnabled": false,
+    "python.unitTest.nosetestsEnabled": false,
+    "python.unitTest.pyTestEnabled": true
+}

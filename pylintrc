@@ -1,0 +1,42 @@
+[MASTER]
+
+jobs=4
+
+[MESSAGES CONTROL]
+
+# C1801 len-as-condition: Do not use `len(SEQUENCE)` as condition value
+# R0902 too-many-instance-attributes: Too many instance attributes
+# R0914 too-many-locals: Too many local variables
+# W0511 fixme: TODO statements
+# W1201 logging-not-lazy: Specify string format arguments as logging function parameters
+# W1202 logging-format-interpolation: Use % formatting in logging functions and pass the % parameters as arguments
+# W1203 logging-fstring-interpolation: Use % formatting in logging functions and pass the % parameters as arguments
+disable=C1801,R0902,R0914,W0511,W1201,W1202,W1203
+
+[REPORTS]
+
+output-format=parseable
+
+[BASIC]
+
+good-names=f,i,j,k,ex,log,_,unit_test
+
+include-naming-hint=yes
+
+method-rgx=[a-z_][a-z0-9_]{2,50}$
+method-name-hint=[a-z_][a-z0-9_]{2,50}$
+function-rgx=[a-z_][a-z0-9_]{2,50}$
+fuction-name-hint=[a-z_][a-z0-9_]{2,50}$
+
+max-attributes=15
+
+[DESIGN]
+
+min-public-methods=0
+
+[FORMAT]
+
+max-line-length=200
+max-statements=75
+max-args=8
+expected-line-ending-format=LF

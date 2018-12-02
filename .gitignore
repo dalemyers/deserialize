@@ -1,5 +1,6 @@
 .cache/
 .mypy_cache/
+.pytest_cache/
 bin/
 include/
 junit/test-results.xml
