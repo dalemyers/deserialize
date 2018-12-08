@@ -74,12 +74,43 @@ class DeserializeException(Exception):
     pass
 
 
+class InvalidBaseTypeException(DeserializeException):
+    """An error where the "base" type to be deserialized was invalid."""
+    pass
+
+
 def deserialize(class_reference, data):
     """Deserialize data to a Python object."""
-    if not isinstance(data, dict):
-        raise DeserializeException(f"Data must be a dictionary")
 
-    return _deserialize_dict(class_reference, data)
+    if isinstance(data, dict):
+        return _deserialize_dict(class_reference, data)
+
+    if isinstance(data, list):
+        return _deserialize_list(class_reference, data)
+
+    raise InvalidBaseTypeException("Only lists and dictionaries are supported as base raw data types")
+
+
+def _deserialize_list(class_reference, list_data):
+
+    if not isinstance(list_data, list):
+        raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list.")
+
+    if not isinstance(class_reference, typing._GenericAlias):
+        raise DeserializeException(f"Cannot deserialize a list to '{class_reference}'")
+
+    if class_reference._name != "List":
+        raise DeserializeException(f"Cannot deserialize a list to '{class_reference._name}'")
+
+    list_content_type = class_reference.__args__[0]
+
+    output = []
+
+    for item in list_data:
+        deserialized = deserialize(list_content_type, item)
+        output.append(deserialized)
+
+    return output
 
 
 def _deserialize_dict(class_reference, data):
@@ -88,7 +119,7 @@ def _deserialize_dict(class_reference, data):
     hints = typing.get_type_hints(class_reference)
 
     if len(hints) == 0:
-        raise DeserializeException(f"Could not deserialize {data} into {class_reference}")
+        raise DeserializeException(f"Could not deserialize {data} into {class_reference} due to lack of type hints")
 
     class_instance = class_reference()
 
