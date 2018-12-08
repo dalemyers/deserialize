@@ -77,10 +77,8 @@ def _deserialize_dict(class_reference, data):
 
     for attribute_name, attribute_type in hints.items():
         property_key = _get_key(class_reference, attribute_name)
-        property_value_unparsed = data.get(property_key)
         parser_function = _get_parser(class_reference, property_key)
-        property_value = parser_function(property_value_unparsed)
-        property_type = type(property_value)
+        property_value = parser_function(data.get(property_key))
 
         # Check for optionals first. We check if it's None, finish if so.
         # Otherwise we can hoist out the type and continue
@@ -92,7 +90,7 @@ def _deserialize_dict(class_reference, data):
                 attribute_type = optional_content_type(attribute_type)
 
         # If the types match straight up, we can set and continue
-        if property_type == attribute_type:
+        if type(property_value) == attribute_type:
             setattr(class_instance, attribute_name, property_value)
             continue
 
@@ -139,6 +137,6 @@ def _deserialize_dict(class_reference, data):
             setattr(class_instance, attribute_name, result)
             continue
 
-        raise DeserializeException(f"Unexpected type '{property_type}' for attribute '{attribute_name}'. Expected '{attribute_type}'")
+        raise DeserializeException(f"Unexpected type '{type(property_value)}' for attribute '{attribute_name}'. Expected '{attribute_type}'")
 
     return class_instance
