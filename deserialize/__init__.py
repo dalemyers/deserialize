@@ -1,15 +1,17 @@
 """A module for deserializing data to Python objects."""
 
+#pylint: disable=unidiomatic-typecheck
+#pylint: disable=protected-access
+#pylint: disable=too-many-branches
+#pylint: disable=wildcard-import
+
 import functools
 import typing
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from deserialize.decorators import key, _get_key, parser, _get_parser
 from deserialize.exceptions import DeserializeException, InvalidBaseTypeException
-
-#pylint: disable=unidiomatic-typecheck
-#pylint: disable=protected-access
-#pylint: disable=too-many-branches
+from deserialize.type_checks import *
 
 __version__ = "0.3"
 
@@ -45,18 +47,15 @@ def _deserialize_list(class_reference, list_data):
     if not isinstance(list_data, list):
         raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list.")
 
-    if not isinstance(class_reference, typing._GenericAlias):
+    if not is_list(class_reference):
         raise DeserializeException(f"Cannot deserialize a list to '{class_reference}'")
 
-    if class_reference._name != "List":
-        raise DeserializeException(f"Cannot deserialize a list to '{class_reference._name}'")
-
-    list_content_type = class_reference.__args__[0]
+    list_content_type_value = list_content_type(class_reference)
 
     output = []
 
     for item in list_data:
-        deserialized = _deserialize(list_content_type, item)
+        deserialized = _deserialize(list_content_type_value, item)
         output.append(deserialized)
 
     return output
@@ -79,49 +78,40 @@ def _deserialize_dict(class_reference, data):
         property_value = parser_function(property_value_unparsed)
         property_type = type(property_value)
 
-        try:
-            attribute_type_name = attribute_type._name
-        except AttributeError:
-            attribute_type_name = None
-
         # Check for optionals first. We check if it's None, finish if so.
         # Otherwise we can hoist out the type and continue
-        try:
-            if len(attribute_type.__args__) == 2 and attribute_type.__args__[1] == type(None):
-                if property_value is None:
-                    setattr(class_instance, attribute_name, None)
-                    continue
-                else:
-                    attribute_type = attribute_type.__args__[0]
-        except AttributeError:
-            # A base type will not have the __args__ attribute
-            pass
+        if is_optional(attribute_type):
+            if property_value is None:
+                setattr(class_instance, attribute_name, None)
+                continue
+            else:
+                attribute_type = optional_content_type(attribute_type)
 
         # If the types match straight up, we can set and continue
         if property_type == attribute_type:
             setattr(class_instance, attribute_name, property_value)
             continue
 
-        # If we don't have an attribute type name, we have a custom type, so
-        # handle it
-        if attribute_type_name is None:
+        # Check if we have something we need to parse further or not.
+        # If it is a base type (i.e. not a wrapper of some kind), then we can
+        # go ahead and parse it directly without needing to iterate in any way.
+        if is_base_type(attribute_type):
             custom_type_instance = _deserialize(attribute_type, property_value)
             setattr(class_instance, attribute_name, custom_type_instance)
             continue
 
         # Lists and dictionaries remain
-        if attribute_type_name == "List":
+        if is_list(attribute_type):
             setattr(class_instance, attribute_name, _deserialize_list(attribute_type, property_value))
             continue
 
-        if attribute_type_name == "Dict":
+        if is_dict(attribute_type):
             # If there are no values, then the types automatically do match
             if len(property_value) == 0:
                 setattr(class_instance, attribute_name, property_value)
                 continue
 
-            key_type = attribute_type.__args__[0]
-            value_type = attribute_type.__args__[1]
+            key_type, value_type = dict_content_types(attribute_type)
 
             result = {}
 
