@@ -42,7 +42,7 @@ def _deserialize(class_reference, data):
     if isinstance(data, list):
         return _deserialize_list(class_reference, data)
 
-    raise InvalidBaseTypeException(f"Cannot deserialize '{type(data)}' to '{class_reference}'")
+    raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}'")
 
 
 
@@ -110,6 +110,10 @@ def _deserialize_dict(class_reference, data):
             continue
 
         if is_dict(attribute_type):
+
+            if not isinstance(property_value, dict):
+                raise DeserializeException(f"Value '{property_value}' is type '{type(property_value)}' not 'dict'")
+
             # If there are no values, then the types automatically do match
             if len(property_value) == 0:
                 setattr(class_instance, attribute_name, property_value)
@@ -129,9 +133,8 @@ def _deserialize_dict(class_reference, data):
                     result[item_key] = item_value
                     continue
 
-                # We have to deserialize
-                item_deserialized = _deserialize(value_type, item_value)
-                result[item_key] = item_deserialized
+                # We have to deserialize (it will throw on failure)
+                result[item_key] = _deserialize(value_type, item_value)
 
             setattr(class_instance, attribute_name, result)
             continue
