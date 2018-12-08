@@ -26,7 +26,7 @@ jobs:
     displayName: 'Type Check'
 
   - script: |
-      python -m pytest tests --doctest-modules --junitxml=junit/test-results.xml
+      python -m pytest tests --cov=deserialize --cov-report html --cov-report xml --doctest-modules --junitxml=junit/test-results.xml
     displayName: 'pytest'
 
   - task: PublishTestResults@2
@@ -34,3 +34,10 @@ jobs:
       testResultsFiles: '**/test-results.xml'
       testRunTitle: 'Python $(python.version)'
     condition: succeededOrFailed()
+
+  # Publish Code Coverage Results
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: 'cobertura'
+      summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage.xml
+      reportDirectory: $(System.DefaultWorkingDirectory)/htmlcov

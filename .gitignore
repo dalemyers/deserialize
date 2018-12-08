@@ -2,6 +2,8 @@
 .mypy_cache/
 .pytest_cache/
 bin/
+coverage.xml
+htmlcov/
 include/
 junit/test-results.xml
 lib/
