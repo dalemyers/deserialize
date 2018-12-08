@@ -60,13 +60,13 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
         self.assertEqual(len(instances[0]), 1)
         self.assertEqual(instances[0][0].field, data[0][0]["field"])
 
-    def test_invalid_lists(self):
-        """Test that lists of base types don't parse."""
+    def test_base_type_lists(self):
+        """Test that lists of base types parse."""
 
         data = [1, 2, 3]
 
-        with self.assertRaises(deserialize.InvalidBaseTypeException):
-            _ = deserialize.deserialize(List[int], data)
+        parsed = deserialize.deserialize(List[int], data)
+        self.assertEqual(data, parsed)
 
     def test_base_type(self):
         """Test that base types don't parse."""

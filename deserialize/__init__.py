@@ -26,6 +26,23 @@ def deserialize(class_reference, data):
     raise InvalidBaseTypeException("Only lists and dictionaries are supported as base raw data types")
 
 
+def _deserialize(class_reference, data):
+    """Deserialize data to a Python object, but allow base types"""
+
+    # Shortcut out if we have already got the matching type.
+    if not isinstance(class_reference, typing._GenericAlias) and isinstance(data, class_reference):
+        return data
+
+    if isinstance(data, dict):
+        return _deserialize_dict(class_reference, data)
+
+    if isinstance(data, list):
+        return _deserialize_list(class_reference, data)
+
+    raise InvalidBaseTypeException("Only lists and dictionaries are supported as base raw data types")
+
+
+
 def _deserialize_list(class_reference, list_data):
 
     if not isinstance(list_data, list):
@@ -42,7 +59,7 @@ def _deserialize_list(class_reference, list_data):
     output = []
 
     for item in list_data:
-        deserialized = deserialize(list_content_type, item)
+        deserialized = _deserialize(list_content_type, item)
         output.append(deserialized)
 
     return output
@@ -91,33 +108,13 @@ def _deserialize_dict(class_reference, data):
         # If we don't have an attribute type name, we have a custom type, so
         # handle it
         if attribute_type_name is None:
-            custom_type_instance = deserialize(attribute_type, property_value)
+            custom_type_instance = _deserialize(attribute_type, property_value)
             setattr(class_instance, attribute_name, custom_type_instance)
             continue
 
         # Lists and dictionaries remain
         if attribute_type_name == "List":
-            # If there are no values, then the types automatically do match
-
-            if not isinstance(property_value, list):
-                raise DeserializeException(f"Unexpected type '{type(property_value)}'. Expected '{type(list)}'")
-
-            if len(property_value) == 0:
-                setattr(class_instance, attribute_name, property_value)
-                continue
-
-            list_content_type = attribute_type.__args__[0]
-
-            result = []
-
-            for item in property_value:
-                if type(item) == list_content_type:
-                    result.append(item)
-                else:
-                    attempted_instance = deserialize(list_content_type, item)
-                    result.append(attempted_instance)
-
-            setattr(class_instance, attribute_name, result)
+            setattr(class_instance, attribute_name, _deserialize_list(attribute_type, property_value))
             continue
 
         if attribute_type_name == "Dict":
@@ -142,7 +139,7 @@ def _deserialize_dict(class_reference, data):
                     continue
 
                 # We have to deserialize
-                item_deserialized = deserialize(value_type, item_value)
+                item_deserialized = _deserialize(value_type, item_value)
                 result[item_key] = item_deserialized
 
             setattr(class_instance, attribute_name, result)
