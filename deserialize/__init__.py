@@ -29,6 +29,10 @@ def _deserialize(class_reference, data):
     """Deserialize data to a Python object, but allow base types"""
 
     # Shortcut out if we have already got the matching type.
+    # We shouldn't need the isinstance check against typing._GenericAlias since
+    # it should return False if it isn't, however, it has overridden the check,
+    # so calling isinstance against typing._GenericAlias throws an exception. To
+    # avoid this, we make sure it isn't one before continuing.
     if not isinstance(class_reference, typing._GenericAlias) and isinstance(data, class_reference):
         return data
 
