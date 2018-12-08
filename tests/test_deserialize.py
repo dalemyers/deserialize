@@ -2,13 +2,20 @@
 
 import os
 import sys
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 #pylint: disable=wrong-import-position
 import deserialize
 #pylint: enable=wrong-import-position
+
+
+class UnannotatedClass:
+    """Test class with no type annotations."""
+
+    def __init__(self, value):
+        self.value = value
 
 
 class SinglePropertySimpleType:
@@ -58,6 +65,23 @@ class ComplexNestedType:
             "five": str(self.five),
             "six": str([str(item) for item in self.six])
         })
+
+
+class TypeWithDict:
+    """Test a class that has a dict embedded."""
+    value: int
+    dict_value: Dict[str, int]
+
+
+class TypeWithComplexDict:
+    """Test a class that has a complex dict embedded."""
+    value: int
+    dict_value: Dict[str, TypeWithDict]
+
+
+class InvalidAnnotations:
+    """Test a class with invalid annotations."""
+    value: Callable
 
 
 class DeserializationTestSuite(unittest.TestCase):
@@ -224,3 +248,134 @@ class DeserializationTestSuite(unittest.TestCase):
         for test_case in invalid_test_cases:
             with self.assertRaises(deserialize.DeserializeException):
                 _ = deserialize.deserialize(ComplexNestedType, test_case)
+
+
+    def test_unannotated(self):
+        """Test parsing unannotated classes."""
+        data = {
+            "value": 1
+        }
+
+        with self.assertRaises(deserialize.DeserializeException):
+            _ = deserialize.deserialize(UnannotatedClass, data)
+
+
+    def test_type_with_dict(self):
+        """Test parsing types with dicts."""
+
+        test_cases = [
+            {
+                "value": 1,
+                "dict_value": {
+                    "Hello": 1,
+                    "World": 2
+                }
+            },
+            {
+                "value": 1,
+                "dict_value": {}
+            },
+        ]
+
+        for test_case in test_cases:
+            instance = deserialize.deserialize(TypeWithDict, test_case)
+            self.assertEqual(instance.value, test_case["value"])
+            for key, value in test_case["dict_value"].items():
+                self.assertEqual(instance.dict_value.get(key), value)
+
+        failure_cases = [
+            {
+                "value": 1,
+                "dict_value": {
+                    "Hello": "one",
+                    "World": "two"
+                }
+            },
+            {
+                "value": 1,
+                "dict_value": {
+                    1: "one",
+                    2: "two"
+                }
+            },
+            {
+                "value": 1,
+                "dict_value": []
+            },
+        ]
+
+        for test_case in failure_cases:
+            with self.assertRaises(deserialize.DeserializeException):
+                _ = deserialize.deserialize(TypeWithDict, test_case)
+
+
+    def test_type_with_complex_dict(self):
+        """Test parsing types with complex dicts."""
+
+        test_cases = [
+            {
+                "value": 1,
+                "dict_value": {
+                    "Hello": {
+                        "value": 1,
+                        "dict_value": {
+                            "Hello": 1,
+                            "World": 2
+                        }
+                    }
+                }
+            },
+        ]
+
+        for test_case in test_cases:
+            instance = deserialize.deserialize(TypeWithComplexDict, test_case)
+            self.assertEqual(instance.value, test_case["value"])
+            sub_instance = instance.dict_value["Hello"]
+            sub_test_case = test_case["dict_value"]["Hello"]
+            self.assertEqual(sub_instance.value, sub_test_case["value"])
+            for key, value in sub_test_case["dict_value"].items():
+                self.assertEqual(sub_instance.dict_value.get(key), value)
+
+        failure_cases = [
+            {
+                "value": 1,
+                "dict_value": {
+                    "Hello": {}
+                }
+            },
+            {
+                "value": 1,
+                "dict_value": {
+                    "Hello": {
+                        "value": 1,
+                        "dict_value": {
+                            "Hello": "one",
+                            "World": 2
+                        }
+                    }
+                }
+            },
+            {
+                "value": 1,
+                "dict_value": {
+                    "Hello": {
+                        "value": 1
+                    }
+                }
+            },
+        ]
+
+        for test_case in failure_cases:
+            with self.assertRaises(deserialize.DeserializeException):
+                _ = deserialize.deserialize(TypeWithComplexDict, test_case)
+
+
+    def test_invalid_types(self):
+        """Test parsing unannotated classes."""
+
+        data = {
+            "value": lambda x: x * 2
+        }
+
+        with self.assertRaises(deserialize.DeserializeException):
+            _ = deserialize.deserialize(InvalidAnnotations, data)
