@@ -17,13 +17,10 @@ __version__ = "0.3"
 def deserialize(class_reference, data):
     """Deserialize data to a Python object."""
 
-    if isinstance(data, dict):
-        return _deserialize_dict(class_reference, data)
+    if not isinstance(data, dict) and not isinstance(data, list):
+        raise InvalidBaseTypeException("Only lists and dictionaries are supported as base raw data types")
 
-    if isinstance(data, list):
-        return _deserialize_list(class_reference, data)
-
-    raise InvalidBaseTypeException("Only lists and dictionaries are supported as base raw data types")
+    return _deserialize(class_reference, data)
 
 
 def _deserialize(class_reference, data):
@@ -39,7 +36,7 @@ def _deserialize(class_reference, data):
     if isinstance(data, list):
         return _deserialize_list(class_reference, data)
 
-    raise InvalidBaseTypeException("Only lists and dictionaries are supported as base raw data types")
+    raise InvalidBaseTypeException(f"Cannot deserialize '{type(data)}' to '{class_reference}'")
 
 
 
