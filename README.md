@@ -134,3 +134,5 @@ class Result:
 ```
 
 This will now detect when handling the data for the _key_ `timestamp` and run it through the parser function supplied before assigning it to your new class instance.
+
+The parser is run _before_ type checking is done. This means that if you had something like `Optional[datetime.datetime]`, you should ensure your parser can handle the value being `None`. Your parser will obviously need to return the type that you have declared on the property in order to work.
