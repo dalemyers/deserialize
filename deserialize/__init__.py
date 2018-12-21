@@ -13,7 +13,7 @@ from deserialize.decorators import key, _get_key, parser, _get_parser
 from deserialize.exceptions import DeserializeException, InvalidBaseTypeException
 from deserialize.type_checks import *
 
-__version__ = "0.3"
+__version__ = "0.4"
 
 
 def deserialize(class_reference, data):
