@@ -5,6 +5,7 @@
 #pylint: disable=too-many-branches
 #pylint: disable=wildcard-import
 
+import enum
 import functools
 import typing
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -41,6 +42,12 @@ def _deserialize(class_reference, data):
 
     if isinstance(data, list):
         return _deserialize_list(class_reference, data)
+
+    if issubclass(class_reference, enum.Enum):
+        try:
+            return class_reference(data)
+        except:
+            raise DeserializeException(f"Invalid value of '{data}' for type '{class_reference}'")
 
     raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}'")
 
