@@ -16,6 +16,15 @@ homepage = "https://github.com/dalemyers/deserialize"
 
 keywords = ['deserialization', 'deserialize', 'objects', 'object', 'json']
 
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: Software Development :: Libraries"
+]
+
 [tool.poetry.dependencies]
 python = "^3.7"
 
