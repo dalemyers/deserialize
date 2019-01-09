@@ -1,8 +1,12 @@
 .cache/
+.coverage
 .mypy_cache/
 .pytest_cache/
+*.egg-info/
+*.pyc
 bin/
 coverage.xml
+dist/*
 htmlcov/
 include/
 junit/test-results.xml
