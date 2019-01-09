@@ -47,7 +47,8 @@ def _deserialize(class_reference, data):
         try:
             return class_reference(data)
         except:
-            raise DeserializeException(f"Invalid value of '{data}' for type '{class_reference}'")
+            # This will be handled at the end
+            pass
 
     raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}'")
 
