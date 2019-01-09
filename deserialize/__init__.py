@@ -14,8 +14,6 @@ from deserialize.decorators import key, _get_key, parser, _get_parser
 from deserialize.exceptions import DeserializeException, InvalidBaseTypeException
 from deserialize.type_checks import *
 
-__version__ = "0.4"
-
 
 def deserialize(class_reference, data):
     """Deserialize data to a Python object."""
@@ -46,8 +44,11 @@ def _deserialize(class_reference, data):
     if issubclass(class_reference, enum.Enum):
         try:
             return class_reference(data)
+        #pylint:disable=bare-except
         except:
-            raise DeserializeException(f"Invalid value of '{data}' for type '{class_reference}'")
+        #pylint:enable=bare-except
+            # This will be handled at the end
+            pass
 
     raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}'")
 
