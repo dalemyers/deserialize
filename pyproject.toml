@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "deserialize"
+version = "0.5.0"
+description = "A library to make deserialization easy."
+
+license = "MIT"
+
+authors = [
+    "Dale Myers <dale@myers.io>"
+]
+
+readme = 'README.md'
+
+repository = "https://github.com/dalemyers/deserialize"
+homepage = "https://github.com/dalemyers/deserialize"
+
+keywords = ['deserialization', 'deserialize', 'objects', 'object', 'json']
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+mypy = "=0.641"
+pylint = "=2.1.1"
+pytest = "=4.0.1"
+pytest-cov = "=2.6.0"
