@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deserialize"
-version = "0.6.0"
+version = "0.7.0"
 description = "A library to make deserialization easy."
 
 license = "MIT"
