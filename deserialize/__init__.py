@@ -10,7 +10,7 @@ import functools
 import typing
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from deserialize.decorators import key, _get_key, parser, _get_parser
+from deserialize.decorators import ignore, _should_ignore, key, _get_key, parser, _get_parser
 from deserialize.exceptions import DeserializeException, InvalidBaseTypeException
 from deserialize.type_checks import *
 
@@ -84,6 +84,9 @@ def _deserialize_dict(class_reference, data):
     class_instance = class_reference()
 
     for attribute_name, attribute_type in hints.items():
+        if _should_ignore(class_reference, attribute_name):
+            continue
+
         property_key = _get_key(class_reference, attribute_name)
         parser_function = _get_parser(class_reference, property_key)
         property_value = parser_function(data.get(property_key))
