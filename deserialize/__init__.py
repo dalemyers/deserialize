@@ -21,10 +21,15 @@ def deserialize(class_reference, data):
     if not isinstance(data, dict) and not isinstance(data, list):
         raise InvalidBaseTypeException("Only lists and dictionaries are supported as base raw data types")
 
-    return _deserialize(class_reference, data)
+    try:
+        name = class_reference.__name__
+    except AttributeError:
+        name = str(class_reference)
+
+    return _deserialize(class_reference, data, name)
 
 
-def _deserialize(class_reference, data):
+def _deserialize(class_reference, data, debug_name):
     """Deserialize data to a Python object, but allow base types"""
 
     # Shortcut out if we have already got the matching type.
@@ -36,10 +41,10 @@ def _deserialize(class_reference, data):
         return data
 
     if isinstance(data, dict):
-        return _deserialize_dict(class_reference, data)
+        return _deserialize_dict(class_reference, data, debug_name)
 
     if isinstance(data, list):
-        return _deserialize_list(class_reference, data)
+        return _deserialize_list(class_reference, data, debug_name)
 
     if issubclass(class_reference, enum.Enum):
         try:
@@ -50,11 +55,11 @@ def _deserialize(class_reference, data):
             # This will be handled at the end
             pass
 
-    raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}'")
+    raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'")
 
 
 
-def _deserialize_list(class_reference, list_data):
+def _deserialize_list(class_reference, list_data, debug_name):
 
     if not isinstance(list_data, list):
         raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list.")
@@ -66,14 +71,14 @@ def _deserialize_list(class_reference, list_data):
 
     output = []
 
-    for item in list_data:
-        deserialized = _deserialize(list_content_type_value, item)
+    for index, item in enumerate(list_data):
+        deserialized = _deserialize(list_content_type_value, item, f"{debug_name}[{index}]")
         output.append(deserialized)
 
     return output
 
 
-def _deserialize_dict(class_reference, data):
+def _deserialize_dict(class_reference, data, debug_name):
     """Deserialize a dictionary to a Python object."""
 
     hints = typing.get_type_hints(class_reference)
@@ -109,13 +114,13 @@ def _deserialize_dict(class_reference, data):
         # If it is a base type (i.e. not a wrapper of some kind), then we can
         # go ahead and parse it directly without needing to iterate in any way.
         if is_base_type(attribute_type):
-            custom_type_instance = _deserialize(attribute_type, property_value)
+            custom_type_instance = _deserialize(attribute_type, property_value, f"{debug_name}.{attribute_name}")
             setattr(class_instance, attribute_name, custom_type_instance)
             continue
 
         # Lists and dictionaries remain
         if is_list(attribute_type):
-            setattr(class_instance, attribute_name, _deserialize_list(attribute_type, property_value))
+            setattr(class_instance, attribute_name, _deserialize_list(attribute_type, property_value, f"{debug_name}.{attribute_name}"))
             continue
 
         if is_dict(attribute_type):
@@ -143,11 +148,11 @@ def _deserialize_dict(class_reference, data):
                     continue
 
                 # We have to deserialize (it will throw on failure)
-                result[item_key] = _deserialize(value_type, item_value)
+                result[item_key] = _deserialize(value_type, item_value, f"{debug_name}.{item_key}")
 
             setattr(class_instance, attribute_name, result)
             continue
 
-        raise DeserializeException(f"Unexpected type '{type(property_value)}' for attribute '{attribute_name}'. Expected '{attribute_type}'")
+        raise DeserializeException(f"Unexpected type '{type(property_value)}' for attribute '{attribute_name}' on '{debug_name}'. Expected '{attribute_type}'")
 
     return class_instance

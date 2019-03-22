@@ -13,3 +13,4 @@ junit/test-results.xml
 lib/
 pip-selfcheck.json
 pyvenv.cfg
+.vscode/*
