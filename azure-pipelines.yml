@@ -6,6 +6,8 @@ jobs:
     vmImage: 'macOS-10.13'
   strategy:
     matrix:
+      Python36:
+        python.version: '3.6'
       Python37:
         python.version: '3.7'
     maxParallel: 4
@@ -16,21 +18,35 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - script: python -m pip install --upgrade pip && pip install -r requirements.txt
+  - script: curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+    displayName: Install Poetry
+
+  - script: python -m venv $(System.DefaultWorkingDirectory)
+    displayName: Create virtual environment
+
+  - script: |
+      source bin/activate
+      $HOME/.poetry/bin/poetry install
     displayName: 'Install dependencies'
 
-  - script: python -m pylint --rcfile=pylintrc deserialize
+  - script: 
+     source bin/activate
+     python -m pylint --rcfile=pylintrc deserialize
     displayName: 'Lint'
 
-  - script: python -m mypy --ignore-missing-imports deserialize/
+  - script: 
+     source bin/activate
+     python -m mypy --ignore-missing-imports deserialize/
     displayName: 'Type Check'
 
   - script: |
-      python -m pytest tests --cov=deserialize --cov-report html --cov-report xml --doctest-modules --junitxml=junit/test-results.xml
+     source bin/activate
+     python -m pytest tests --cov=deserialize --cov-report html --cov-report xml --doctest-modules --junitxml=junit/test-results.xml
     displayName: 'pytest'
 
   - script: |
-      python inlinecss.py htmlcov
+     source bin/activate
+     python inlinecss.py htmlcov
     displayName: 'Inline CSS'
       
   - task: PublishTestResults@2

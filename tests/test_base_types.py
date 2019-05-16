@@ -1,8 +1,9 @@
 """Test base types."""
 
+import datetime
 import os
 import sys
-from typing import List
+from typing import Callable, List
 import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -14,6 +15,9 @@ import deserialize
 class Item:
     """Sample item for use in tests."""
     field: int
+
+class Empty:
+    """Sample empty item"""
 
 
 class DeserializationBaseTypesTestSuite(unittest.TestCase):
@@ -28,6 +32,14 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
 
         instance = deserialize.deserialize(Item, data)
         self.assertEqual(data["field"], instance.field)
+
+    def test_empty_classes(self):
+        """Test that empty classes throw an exception on deserialization."""
+
+        data = {}
+
+        with self.assertRaises(deserialize.DeserializeException):
+            _ = deserialize.deserialize(Empty, data)
 
     def test_lists(self):
         """Test that root lists deserialize correctly."""
@@ -71,7 +83,17 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
     def test_base_type(self):
         """Test that base types don't parse."""
 
-        data = 1
+        base_types = [
+            (1, int),
+            ("Hello", str),
+            (lambda x: x * 2, Callable),
+            (3.14159, float),
+            (datetime.datetime.now(), datetime.datetime),
+            (set([]), set),
+            ((1,2), tuple),
+            (range(3), range),
+        ]
 
-        with self.assertRaises(deserialize.InvalidBaseTypeException):
-            _ = deserialize.deserialize(int, data)
+        for base_value, base_type in base_types:
+            with self.assertRaises(deserialize.InvalidBaseTypeException):
+                _ = deserialize.deserialize(base_type, base_value)
