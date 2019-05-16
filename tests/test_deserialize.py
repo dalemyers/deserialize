@@ -1,8 +1,9 @@
 """Test deserializing."""
 
 import os
+import re
 import sys
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Pattern
 import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -79,9 +80,10 @@ class TypeWithComplexDict:
     dict_value: Dict[str, TypeWithDict]
 
 
-class InvalidAnnotations:
-    """Test a class with invalid annotations."""
-    value: Callable
+class NonJsonTypes:
+    """Test a class that uses base types that aren't JSON compatible."""
+    one: tuple
+    two: range
 
 
 class DeserializationTestSuite(unittest.TestCase):
@@ -161,7 +163,6 @@ class DeserializationTestSuite(unittest.TestCase):
         for test_case in invalid_test_cases:
             with self.assertRaises(deserialize.DeserializeException):
                 _ = deserialize.deserialize(SinglePropertyComplexType, test_case)
-
 
     def test_complex_nested(self):
         """Test that items in a complex nested object deserialize."""
@@ -249,7 +250,6 @@ class DeserializationTestSuite(unittest.TestCase):
             with self.assertRaises(deserialize.DeserializeException):
                 _ = deserialize.deserialize(ComplexNestedType, test_case)
 
-
     def test_unannotated(self):
         """Test parsing unannotated classes."""
         data = {
@@ -258,7 +258,6 @@ class DeserializationTestSuite(unittest.TestCase):
 
         with self.assertRaises(deserialize.DeserializeException):
             _ = deserialize.deserialize(UnannotatedClass, data)
-
 
     def test_type_with_dict(self):
         """Test parsing types with dicts."""
@@ -307,7 +306,6 @@ class DeserializationTestSuite(unittest.TestCase):
         for test_case in failure_cases:
             with self.assertRaises(deserialize.DeserializeException):
                 _ = deserialize.deserialize(TypeWithDict, test_case)
-
 
     def test_type_with_complex_dict(self):
         """Test parsing types with complex dicts."""
@@ -369,13 +367,14 @@ class DeserializationTestSuite(unittest.TestCase):
             with self.assertRaises(deserialize.DeserializeException):
                 _ = deserialize.deserialize(TypeWithComplexDict, test_case)
 
-
-    def test_invalid_types(self):
-        """Test parsing unannotated classes."""
+    def test_non_json_types(self):
+        """Test parsing types that are not JSON compatible."""
 
         data = {
-            "value": lambda x: x * 2
+            "one": (1,2),
+            "two": range(3)
         }
 
-        with self.assertRaises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(InvalidAnnotations, data)
+        result = deserialize.deserialize(NonJsonTypes, data)
+        self.assertEqual(data["one"], result.one)
+        self.assertEqual(data["two"], result.two)

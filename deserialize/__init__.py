@@ -33,12 +33,19 @@ def _deserialize(class_reference, data, debug_name):
     """Deserialize data to a Python object, but allow base types"""
 
     # Shortcut out if we have already got the matching type.
-    # We shouldn't need the isinstance check against typing._GenericAlias since
-    # it should return False if it isn't, however, it has overridden the check,
-    # so calling isinstance against typing._GenericAlias throws an exception. To
-    # avoid this, we make sure it isn't one before continuing.
-    if not isinstance(class_reference, typing._GenericAlias) and isinstance(data, class_reference):
-        return data
+    # We shouldn't need the check to see if this is a generic type instance
+    # since the class_reference isinstance check should just return False if it
+    # isn't. The problem is that any types which inherit from _GenericAlias have
+    # overridden the isinstance check and it throws an exception if you try. To
+    # avoid this, we do the explicit check that it isn't a generic instance
+    # first, short circuiting the operator if it is.
+    if not is_typing_type(class_reference):
+        try:
+            if isinstance(data, class_reference):
+                return data
+        # The isinstance check throws an exception on 3.6
+        except TypeError:
+            pass
 
     if isinstance(data, dict):
         return _deserialize_dict(class_reference, data, debug_name)
@@ -106,14 +113,17 @@ def _deserialize_dict(class_reference, data, debug_name):
                 attribute_type = optional_content_type(attribute_type)
 
         # If the types match straight up, we can set and continue
-        if type(property_value) == attribute_type:
-            setattr(class_instance, attribute_name, property_value)
-            continue
+        try:
+            if isinstance(property_value, attribute_type):
+                setattr(class_instance, attribute_name, property_value)
+                continue
+        except:
+            pass
 
         # Check if we have something we need to parse further or not.
         # If it is a base type (i.e. not a wrapper of some kind), then we can
         # go ahead and parse it directly without needing to iterate in any way.
-        if is_base_type(attribute_type):
+        if not is_typing_type(attribute_type):
             custom_type_instance = _deserialize(attribute_type, property_value, f"{debug_name}.{attribute_name}")
             setattr(class_instance, attribute_name, custom_type_instance)
             continue
