@@ -40,4 +40,3 @@ class DeserializationUnionTestSuite(unittest.TestCase):
         instance = deserialize.deserialize(SampleItem1, data)
         self.assertEqual(data["field_1"], instance.field_1)
         self.assertIsInstance(instance.field_1, type(data["field_1"]))
-
