@@ -16,7 +16,7 @@ class SampleItem:
     field_1: int
     field_2: int
 
-class DeserializationInogreTestSuite(unittest.TestCase):
+class DeserializationIgnoreTestSuite(unittest.TestCase):
     """Deserialization ignore test cases."""
 
     def test_keys(self):
