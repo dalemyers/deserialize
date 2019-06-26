@@ -9,6 +9,7 @@ import enum
 import functools
 import typing
 from typing import Any, Callable, Dict, List, Optional, Union
+from contextlib import suppress
 
 from deserialize.decorators import ignore, _should_ignore, key, _get_key, parser, _get_parser
 from deserialize.exceptions import DeserializeException, InvalidBaseTypeException
@@ -61,6 +62,14 @@ def _deserialize(class_reference, data, debug_name):
         #pylint:enable=bare-except
             # This will be handled at the end
             pass
+
+    if sys.version_info < (3, 7):
+        # Union/Optional is a special case since it doesn't inherit.
+        with suppress(AttributeError):  # Not everything has the __origin__ member
+            if class_reference.__origin__ is typing.Union:
+                for arg in class_reference.__args__:
+                    with suppress(DeserializeException):
+                        return _deserialize(arg, data, debug_name)
 
     raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'")
 
@@ -162,6 +171,18 @@ def _deserialize_dict(class_reference, data, debug_name):
 
             setattr(class_instance, attribute_name, result)
             continue
+
+        with suppress(AttributeError):
+            if attribute_type.__origin__ is typing.Union:
+                value = init = object()
+                for arg in attribute_type.__args__:
+                    with suppress(DeserializeException):
+                        value = _deserialize(arg, property_value, debug_name)
+                        setattr(class_instance, attribute_name, value)
+                        break
+                if value is not init:
+                    # None of the Union types fit
+                    continue
 
         raise DeserializeException(f"Unexpected type '{type(property_value)}' for attribute '{attribute_name}' on '{debug_name}'. Expected '{attribute_type}'")
 
