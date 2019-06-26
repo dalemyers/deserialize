@@ -2,6 +2,7 @@
 
 import sys
 import typing
+from contextlib import suppress
 
 #pylint: disable=protected-access
 
@@ -13,12 +14,9 @@ def is_typing_type(class_reference):
 
     if sys.version_info < (3, 7):
         # Union/Optional is a special case since it doesn't inherit.
-        try:
-            if class_reference.__origin__ == typing.Union:
+        with suppress(AttributeError):  # Not everything has the __origin__ member
+            if class_reference.__origin__ is typing.Union:
                 return True
-        except:
-            # Not everything has the __origin__ member
-            pass
 
         if isinstance(class_reference, typing._TypeAlias):
             return True
