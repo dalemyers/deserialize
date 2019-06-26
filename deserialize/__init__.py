@@ -88,7 +88,12 @@ def _deserialize_list(class_reference, list_data, debug_name):
     output = []
 
     for index, item in enumerate(list_data):
-        deserialized = _deserialize(list_content_type_value, item, f"{debug_name}[{index}]")
+        if hasattr(list_content_type_value, "__origin__") and list_content_type_value.__origin__ is typing.Union:
+            for arg in list_content_type_value.__args__:
+                with suppress(DeserializeException):
+                    deserialized = _deserialize(arg, item, f"{debug_name}[{index}]")
+        else:
+            deserialized = _deserialize(list_content_type_value, item, f"{debug_name}[{index}]")
         output.append(deserialized)
 
     return output

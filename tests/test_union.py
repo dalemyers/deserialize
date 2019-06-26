@@ -16,6 +16,11 @@ class SampleItem1:
     field_1: typing.Union[int, str]
 
 
+class SampleItem2:
+    """Sample item for use in tests."""
+    field_1: typing.List[typing.Union[int, str]]
+
+
 class DeserializationUnionTestSuite(unittest.TestCase):
     """Deserialization Union test cases."""
 
@@ -38,6 +43,17 @@ class DeserializationUnionTestSuite(unittest.TestCase):
         }
 
         instance = deserialize.deserialize(SampleItem1, data)
+        self.assertEqual(data["field_1"], instance.field_1)
+        self.assertIsInstance(instance.field_1, type(data["field_1"]))
+
+    def test_union_list(self):
+        """Test that Union deserialize correctly as str."""
+
+        data = {
+            "field_1": [1, 2, 3],
+        }
+
+        instance = deserialize.deserialize(SampleItem2, data)
         self.assertEqual(data["field_1"], instance.field_1)
         self.assertIsInstance(instance.field_1, type(data["field_1"]))
 
