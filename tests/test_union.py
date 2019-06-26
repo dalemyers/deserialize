@@ -40,3 +40,12 @@ class DeserializationUnionTestSuite(unittest.TestCase):
         instance = deserialize.deserialize(SampleItem1, data)
         self.assertEqual(data["field_1"], instance.field_1)
         self.assertIsInstance(instance.field_1, type(data["field_1"]))
+
+    def test_wrong_union_type_raises_error(self):
+        """Test whether an exception is raised when an incorrect type is given"""
+
+        data = {
+            "field_1": 1.0,
+        }
+
+        self.assertRaises(deserialize.DeserializeException, deserialize.deserialize, SampleItem1, data)
