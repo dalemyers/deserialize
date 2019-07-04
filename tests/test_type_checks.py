@@ -41,47 +41,43 @@ class TypeCheckTestSuite(unittest.TestCase):
         self.assertTrue(deserialize.is_typing_type(Pattern))
 
 
-    def test_is_optional(self):
-        """Test is_optional."""
+    def test_is_union(self):
+        """Test is_union."""
 
-        self.assertTrue(deserialize.is_optional(Optional[int]))
-        self.assertTrue(deserialize.is_optional(Optional[str]))
-        self.assertTrue(deserialize.is_optional(Optional[Dict[str, str]]))
+        self.assertTrue(deserialize.is_union(Union[int, None]))
+        self.assertTrue(deserialize.is_union(Union[Dict[str, str], None]))
+        self.assertTrue(deserialize.is_union(Union[int, str]))
+        self.assertTrue(deserialize.is_union(Union[str, int]))
+        self.assertTrue(deserialize.is_union(Union[int, Union[int, str]]))
+        self.assertTrue(deserialize.is_union(Union[Union[str, int], int]))
 
-        # Since Optional[T] == Union[T, None] these should pass
-        self.assertTrue(deserialize.is_optional(Union[int, None]))
-        self.assertTrue(deserialize.is_optional(Union[None, int]))
-
-        self.assertFalse(deserialize.is_optional(int))
-        self.assertFalse(deserialize.is_optional(List[int]))
-        self.assertFalse(deserialize.is_optional(Dict[str, str]))
-        self.assertFalse(deserialize.is_optional(Tuple[Optional[int], int]))
+        self.assertFalse(deserialize.is_union(int))
+        self.assertFalse(deserialize.is_union(List[int]))
+        self.assertFalse(deserialize.is_union(Dict[str, str]))
+        self.assertFalse(deserialize.is_union(Tuple[Optional[int], int]))
 
         # The typing module doesn't let you create either of these.
-        self.assertFalse(deserialize.is_optional(Optional[None]))
-        self.assertFalse(deserialize.is_optional(Union[None, None]))
+        self.assertFalse(deserialize.is_union(Union[None]))
+        self.assertFalse(deserialize.is_union(Union[None, None]))
 
 
-    def test_optional_content_type(self):
-        """Test optional_content_type."""
+    def test_union_types(self):
+        """Test union_types."""
 
-        self.assertEqual(deserialize.optional_content_type(Optional[int]), int)
-        self.assertEqual(deserialize.optional_content_type(Optional[str]), str)
-        self.assertEqual(deserialize.optional_content_type(Optional[Dict[str, str]]), Dict[str, str])
-        self.assertEqual(deserialize.optional_content_type(Union[int, None]), int)
-        self.assertEqual(deserialize.optional_content_type(Union[None, int]), int)
+        self.assertEqual(deserialize.union_types(Union[str, int]), [str, int])
+        self.assertEqual(deserialize.union_types(Union[Dict[str, str], int]), [Dict[str, str], int])
+        self.assertEqual(deserialize.union_types(Union[int, None]), [int, type(None)])
+        self.assertEqual(deserialize.union_types(Union[None, int]), [type(None), int])
 
         # Optional[Optional[X]] == Optional[X]
-        self.assertEqual(deserialize.optional_content_type(Optional[Optional[int]]), int)
-        self.assertEqual(deserialize.optional_content_type(Union[Optional[str], None]), str)
-        self.assertEqual(deserialize.optional_content_type(Union[None, Optional[str]]), str)
-        self.assertEqual(deserialize.optional_content_type(Union[None, Union[str, None]]), str)
+        self.assertEqual(deserialize.union_types(Union[Union[int, None], None]), [int, type(None)])
+        self.assertEqual(deserialize.union_types(Union[None, Optional[str]]), [type(None), str])
 
-        with self.assertRaises(TypeError):
-            _ = deserialize.optional_content_type(int)
+        with self.assertRaises(deserialize.DeserializeException):
+            _ = deserialize.union_types(int)
 
-        with self.assertRaises(TypeError):
-            _ = deserialize.optional_content_type(Tuple[Optional[int], int])
+        with self.assertRaises(deserialize.DeserializeException):
+            _ = deserialize.union_types(Tuple[Optional[int], int])
 
 
     def test_is_list(self):

@@ -32,20 +32,13 @@ def deserialize(class_reference, data):
 def _deserialize(class_reference, data, debug_name):
     """Deserialize data to a Python object, but allow base types"""
 
-    # Shortcut out if we have already got the matching type.
-    # We shouldn't need the check to see if this is a generic type instance
-    # since the class_reference isinstance check should just return False if it
-    # isn't. The problem is that any types which inherit from _GenericAlias have
-    # overridden the isinstance check and it throws an exception if you try. To
-    # avoid this, we do the explicit check that it isn't a generic instance
-    # first, short circuiting the operator if it is.
-    if not is_typing_type(class_reference):
-        try:
-            if isinstance(data, class_reference):
-                return data
-        # The isinstance check throws an exception on 3.6
-        except TypeError:
-            pass
+    if is_union(class_reference):
+        valid_types = union_types(class_reference)
+        for valid_type in valid_types:
+            try:
+                return _deserialize(valid_type, data, debug_name)
+            except:
+                pass
 
     if isinstance(data, dict):
         return _deserialize_dict(class_reference, data, debug_name)
@@ -53,7 +46,7 @@ def _deserialize(class_reference, data, debug_name):
     if isinstance(data, list):
         return _deserialize_list(class_reference, data, debug_name)
 
-    if issubclass(class_reference, enum.Enum):
+    if not is_typing_type(class_reference) and issubclass(class_reference, enum.Enum):
         try:
             return class_reference(data)
         #pylint:disable=bare-except
@@ -61,6 +54,15 @@ def _deserialize(class_reference, data, debug_name):
         #pylint:enable=bare-except
             # This will be handled at the end
             pass
+
+    # If we still have a type from the typing module, we don't know how to
+    # handle it
+    if is_typing_type(class_reference):
+        raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
+
+    # Whatever we have left now is either correct, or invalid
+    if isinstance(data, class_reference):
+        return data
 
     raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'")
 
@@ -88,6 +90,23 @@ def _deserialize_list(class_reference, list_data, debug_name):
 def _deserialize_dict(class_reference, data, debug_name):
     """Deserialize a dictionary to a Python object."""
 
+    # Check if we are doing a straightforward dictionary parse first, or if it
+    # has to be deserialized
+    if is_dict(class_reference):
+        key_type, value_type = dict_content_types(class_reference)
+        result = {}
+
+        for dict_key, dict_value in data.items():
+
+            if not isinstance(dict_key, key_type):
+                raise DeserializeException(f"Could not deserialize key {dict_key} to type {key_type} for {debug_name}")
+
+            result[dict_key] = _deserialize(value_type, dict_value, f"{debug_name}.{dict_key}")
+
+        return result
+
+    # It wasn't a straight forward dictionary, so we are in deserialize mode
+
     hints = typing.get_type_hints(class_reference)
 
     if len(hints) == 0:
@@ -103,66 +122,7 @@ def _deserialize_dict(class_reference, data, debug_name):
         parser_function = _get_parser(class_reference, property_key)
         property_value = parser_function(data.get(property_key))
 
-        # Check for optionals first. We check if it's None, finish if so.
-        # Otherwise we can hoist out the type and continue
-        if is_optional(attribute_type):
-            if property_value is None:
-                setattr(class_instance, attribute_name, None)
-                continue
-            else:
-                attribute_type = optional_content_type(attribute_type)
-
-        # If the types match straight up, we can set and continue
-        try:
-            if isinstance(property_value, attribute_type):
-                setattr(class_instance, attribute_name, property_value)
-                continue
-        except:
-            pass
-
-        # Check if we have something we need to parse further or not.
-        # If it is a base type (i.e. not a wrapper of some kind), then we can
-        # go ahead and parse it directly without needing to iterate in any way.
-        if not is_typing_type(attribute_type):
-            custom_type_instance = _deserialize(attribute_type, property_value, f"{debug_name}.{attribute_name}")
-            setattr(class_instance, attribute_name, custom_type_instance)
-            continue
-
-        # Lists and dictionaries remain
-        if is_list(attribute_type):
-            setattr(class_instance, attribute_name, _deserialize_list(attribute_type, property_value, f"{debug_name}.{attribute_name}"))
-            continue
-
-        if is_dict(attribute_type):
-
-            if not isinstance(property_value, dict):
-                raise DeserializeException(f"Value '{property_value}' is type '{type(property_value)}' not 'dict'")
-
-            # If there are no values, then the types automatically do match
-            if len(property_value) == 0:
-                setattr(class_instance, attribute_name, property_value)
-                continue
-
-            key_type, value_type = dict_content_types(attribute_type)
-
-            result = {}
-
-            for item_key, item_value in property_value.items():
-
-                if type(item_key) != key_type:
-                    raise DeserializeException(f"Key '{item_key}' is type '{type(item_key)}' not '{key_type}'")
-
-                # If the types match, we can just set it and move on
-                if type(item_value) == value_type:
-                    result[item_key] = item_value
-                    continue
-
-                # We have to deserialize (it will throw on failure)
-                result[item_key] = _deserialize(value_type, item_value, f"{debug_name}.{item_key}")
-
-            setattr(class_instance, attribute_name, result)
-            continue
-
-        raise DeserializeException(f"Unexpected type '{type(property_value)}' for attribute '{attribute_name}' on '{debug_name}'. Expected '{attribute_type}'")
+        deserialized_value = _deserialize(attribute_type, property_value, f"{debug_name}.{attribute_name}")
+        setattr(class_instance, attribute_name, deserialized_value)
 
     return class_instance

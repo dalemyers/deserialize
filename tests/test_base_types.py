@@ -3,7 +3,7 @@
 import datetime
 import os
 import sys
-from typing import Callable, List
+from typing import Callable, List, Optional
 import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -71,6 +71,15 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
         self.assertEqual(len(instances), 1)
         self.assertEqual(len(instances[0]), 1)
         self.assertEqual(instances[0][0].field, data[0][0]["field"])
+
+    def test_list_of_optionals(self):
+        """Test that root lists deserialize correctly."""
+
+        data = [1, None, 3, None, 5, None]
+
+        instances = deserialize.deserialize(List[Optional[int]], data)
+
+        self.assertEqual(instances, data)
 
     def test_base_type_lists(self):
         """Test that lists of base types parse."""
