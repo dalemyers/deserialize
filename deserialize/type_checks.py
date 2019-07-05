@@ -3,6 +3,8 @@
 import sys
 import typing
 
+import deserialize.exceptions
+
 #pylint: disable=protected-access
 
 def is_typing_type(class_reference):
@@ -28,35 +30,21 @@ def is_typing_type(class_reference):
     return isinstance(class_reference, typing._GenericAlias)
 
 
-def is_optional(type_value):
+def is_union(type_value):
     """Check if a type is an optional type."""
 
     if not is_typing_type(type_value):
         return False
 
-    if type_value.__args__ is None or len(type_value.__args__) != 2:
-        return False
-
-    # If at least one of the values is NoneType it passes. That means that both
-    # could be in theory as well, but that would be a pretty useless type. For
-    # now, the typing module actually forbids that by returning NoneType
-    # instead.
-    return type_value.__args__[0] == type(None) or type_value.__args__[1] == type(None)
+    return type_value.__origin__ == typing.Union
 
 
-def optional_content_type(type_value):
-    """Strip the Optional wrapper from a type.
+def union_types(type_value):
+    """Return the list of types in a Union."""
+    if not is_union(type_value):
+        raise deserialize.exceptions.DeserializeException(f"Cannot extract union types from non-union type: {type_value}")
 
-    e.g. Optional[int] -> int
-    """
-
-    if not is_optional(type_value):
-        raise TypeError(f"{type_value} is not an Optional type")
-
-    if type_value.__args__[0] == type(None):
-        return type_value.__args__[1]
-
-    return type_value.__args__[0]
+    return list(type_value.__args__)
 
 
 def is_list(type_value):
