@@ -56,7 +56,6 @@ class ComplexNestedType:
     five: Optional[SinglePropertySimpleType]
     six: List[SinglePropertyComplexType]
 
-
     def __str__(self):
         return str({
             "one": self.one,
@@ -66,6 +65,12 @@ class ComplexNestedType:
             "five": str(self.five),
             "six": str([str(item) for item in self.six])
         })
+
+
+class TypeWithSimpleDict:
+    """Test a class that has a simple dict embedded."""
+    value: int
+    dict_value: dict
 
 
 class TypeWithDict:
@@ -297,6 +302,40 @@ class DeserializationTestSuite(unittest.TestCase):
                     2: "two"
                 }
             },
+            {
+                "value": 1,
+                "dict_value": []
+            },
+        ]
+
+        for test_case in failure_cases:
+            with self.assertRaises(deserialize.DeserializeException):
+                _ = deserialize.deserialize(TypeWithDict, test_case)
+
+    def test_type_with_simple_dict(self):
+        """Test parsing types with dicts."""
+
+        test_cases = [
+            {
+                "value": 1,
+                "dict_value": {
+                    "Hello": 1,
+                    "World": 2
+                }
+            },
+            {
+                "value": 1,
+                "dict_value": {}
+            },
+        ]
+
+        for test_case in test_cases:
+            instance = deserialize.deserialize(TypeWithSimpleDict, test_case)
+            self.assertEqual(instance.value, test_case["value"])
+            for key, value in test_case["dict_value"].items():
+                self.assertEqual(instance.dict_value.get(key), value)
+
+        failure_cases = [
             {
                 "value": 1,
                 "dict_value": []
