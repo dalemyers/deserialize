@@ -74,10 +74,10 @@ def _deserialize(class_reference, data, debug_name):
 def _deserialize_list(class_reference, list_data, debug_name):
 
     if not isinstance(list_data, list):
-        raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list.")
+        raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list for {debug_name}")
 
     if not is_list(class_reference):
-        raise DeserializeException(f"Cannot deserialize a list to '{class_reference}'")
+        raise DeserializeException(f"Cannot deserialize a list to '{class_reference}' for {debug_name}")
 
     list_content_type_value = list_content_type(class_reference)
 
@@ -94,10 +94,10 @@ def _deserialize_list(class_reference, list_data, debug_name):
 def _deserialize_tuple(class_reference, tuple_data, debug_name):
 
     if not isinstance(tuple_data, tuple):
-        raise DeserializeException(f"Cannot deserialize '{type(tuple_data)}' as a list.")
+        raise DeserializeException(f"Cannot deserialize '{type(tuple_data)}' as a list for {debug_name}")
 
     if not is_tuple(class_reference):
-        raise DeserializeException(f"Cannot deserialize a tuple to '{class_reference}'")
+        raise DeserializeException(f"Cannot deserialize a tuple to '{class_reference}' for {debug_name}")
 
     tuple_content_types_value = tuple_content_types(class_reference)
 
