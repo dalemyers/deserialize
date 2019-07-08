@@ -47,6 +47,9 @@ def _deserialize(class_reference, data, debug_name):
     if isinstance(data, list):
         return _deserialize_list(class_reference, data, debug_name)
 
+    if isinstance(data, tuple) and is_typing_type(class_reference):
+        return _deserialize_tuple(class_reference, data, debug_name)
+
     if not is_typing_type(class_reference) and issubclass(class_reference, enum.Enum):
         try:
             return class_reference(data)
@@ -86,6 +89,26 @@ def _deserialize_list(class_reference, list_data, debug_name):
         output.append(deserialized)
 
     return output
+
+
+
+def _deserialize_tuple(class_reference, tuple_data, debug_name):
+
+    if not isinstance(tuple_data, tuple):
+        raise DeserializeException(f"Cannot deserialize '{type(tuple_data)}' as a list.")
+
+    if not is_tuple(class_reference):
+        raise DeserializeException(f"Cannot deserialize a tuple to '{class_reference}'")
+
+    tuple_content_types_value = tuple_content_types(class_reference)
+
+    output = []
+
+    for index, (item, item_type) in enumerate(zip(tuple_data, tuple_content_types_value)):
+        deserialized = _deserialize(item_type, item, f"{debug_name}[{index}]")
+        output.append(deserialized)
+
+    return tuple(output)
 
 
 def _deserialize_dict(class_reference, data, debug_name):

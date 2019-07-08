@@ -61,6 +61,20 @@ def is_list(type_value):
         return False
 
 
+def is_tuple(type_value):
+    """Check if a type is a tuple type."""
+
+    if not is_typing_type(type_value):
+        return False
+
+    try:
+        if sys.version_info < (3, 7):
+            return type_value.__origin__ == typing.Tuple
+        return type_value.__origin__ == tuple
+    except AttributeError:
+        return False
+
+
 def list_content_type(type_value):
     """Strip the List wrapper from a type.
 
@@ -71,6 +85,18 @@ def list_content_type(type_value):
         raise TypeError(f"{type_value} is not a List type")
 
     return type_value.__args__[0]
+
+
+def tuple_content_types(type_value):
+    """Strip the Tuple wrapper from a type.
+
+    e.g. Tuple[int, str] -> [int, str]
+    """
+
+    if not is_tuple(type_value):
+        raise TypeError(f"{type_value} is not a Tuple type")
+
+    return type_value.__args__
 
 
 def is_dict(type_value):
