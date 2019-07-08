@@ -3,7 +3,7 @@
 import os
 import re
 import sys
-from typing import Callable, Dict, List, Optional, Pattern
+from typing import Callable, Dict, List, Optional, Pattern, Union
 import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -83,6 +83,11 @@ class TypeWithComplexDict:
     """Test a class that has a complex dict embedded."""
     value: int
     dict_value: Dict[str, TypeWithDict]
+
+
+class TypeWithUnion:
+    """Test a class that has a Union embedded."""
+    union_value: Union[str, int]
 
 
 class NonJsonTypes:
@@ -405,6 +410,32 @@ class DeserializationTestSuite(unittest.TestCase):
         for test_case in failure_cases:
             with self.assertRaises(deserialize.DeserializeException):
                 _ = deserialize.deserialize(TypeWithComplexDict, test_case)
+
+    def test_type_with_union(self):
+        """Test parsing types with complex dicts."""
+
+        test_cases = [
+            {
+                "union_value": "one"
+            },
+            {
+                "union_value": 1
+            },
+        ]
+
+        for test_case in test_cases:
+            instance = deserialize.deserialize(TypeWithUnion, test_case)
+            self.assertEqual(instance.union_value, test_case["union_value"])
+
+        failure_cases = [
+            {
+                "union_value": None
+            },
+        ]
+
+        for test_case in failure_cases:
+            with self.assertRaises(deserialize.DeserializeException):
+                _ = deserialize.deserialize(TypeWithUnion, test_case)
 
     def test_non_json_types(self):
         """Test parsing types that are not JSON compatible."""
