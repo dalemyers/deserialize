@@ -117,6 +117,7 @@ class TypeCheckTestSuite(unittest.TestCase):
     def test_is_dict(self):
         """Test is_dict."""
 
+        self.assertTrue(deserialize.is_dict(dict))
         self.assertTrue(deserialize.is_dict(Dict[int, int]))
         self.assertTrue(deserialize.is_dict(Dict[str, int]))
         self.assertTrue(deserialize.is_dict(Dict[str, Dict[str, str]]))
