@@ -94,6 +94,9 @@ def _deserialize_dict(class_reference, data, debug_name):
     # Check if we are doing a straightforward dictionary parse first, or if it
     # has to be deserialized
     if is_dict(class_reference):
+        if class_reference is dict:
+            # If types of dictionary entries are not defined, do not deserialize
+            return data
         key_type, value_type = dict_content_types(class_reference)
         result = {}
 
