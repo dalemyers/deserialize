@@ -37,8 +37,9 @@ def _deserialize(class_reference, data, debug_name):
         for valid_type in valid_types:
             try:
                 return _deserialize(valid_type, data, debug_name)
-            except:
+            except DeserializeException:
                 pass
+        raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'")
 
     if isinstance(data, dict):
         return _deserialize_dict(class_reference, data, debug_name)
