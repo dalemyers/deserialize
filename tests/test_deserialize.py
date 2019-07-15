@@ -3,7 +3,7 @@
 import os
 import re
 import sys
-from typing import Callable, Dict, List, Optional, Pattern
+from typing import Callable, Dict, List, Optional, Pattern, Tuple, Union
 import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -78,6 +78,11 @@ class TypeWithComplexDict:
     """Test a class that has a complex dict embedded."""
     value: int
     dict_value: Dict[str, TypeWithDict]
+
+
+class TypeWithEllipseTuple:
+    """Test a class that has a Tuple embedded."""
+    tuple_value: Tuple[str, ...]
 
 
 class NonJsonTypes:
@@ -366,6 +371,38 @@ class DeserializationTestSuite(unittest.TestCase):
         for test_case in failure_cases:
             with self.assertRaises(deserialize.DeserializeException):
                 _ = deserialize.deserialize(TypeWithComplexDict, test_case)
+
+    def test_type_with_ellipse_tuple(self):
+        """Test parsing types with complex dicts."""
+
+        test_cases = [
+            {
+                "tuple_value": tuple()
+            },
+            {
+                "tuple_value": ("one",)
+            },
+            {
+                "tuple_value": ("one", "two", "three", "four")
+            },
+        ]
+
+        for test_case in test_cases:
+            instance = deserialize.deserialize(TypeWithEllipseTuple, test_case)
+            self.assertEqual(instance.tuple_value, test_case["tuple_value"])
+
+        failure_cases = [
+            {
+                "tuple_value": (1,)
+            },
+            {
+                "tuple_value": ("one", 2)
+            },
+        ]
+
+        for test_case in failure_cases:
+            with self.assertRaises(deserialize.DeserializeException):
+                _ = deserialize.deserialize(TypeWithEllipseTuple, test_case)
 
     def test_non_json_types(self):
         """Test parsing types that are not JSON compatible."""
