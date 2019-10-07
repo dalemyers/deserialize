@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deserialize"
-version = "0.11.0"
+version = "1.0.0"
 description = "A library to make deserialization easy."
 
 license = "MIT"
@@ -17,7 +17,7 @@ homepage = "https://github.com/dalemyers/deserialize"
 keywords = ['deserialization', 'deserialize', 'objects', 'object', 'json']
 
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
