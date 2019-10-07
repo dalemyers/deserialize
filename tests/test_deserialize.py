@@ -3,7 +3,7 @@
 import os
 import re
 import sys
-from typing import Callable, Dict, List, Optional, Pattern, Union
+from typing import Any, Callable, Dict, List, Optional, Pattern, Union
 import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -83,6 +83,7 @@ class TypeWithComplexDict:
     """Test a class that has a complex dict embedded."""
     value: int
     dict_value: Dict[str, TypeWithDict]
+    any_dict_value: Dict[str, Any]
 
 
 class TypeWithUnion:
@@ -365,6 +366,10 @@ class DeserializationTestSuite(unittest.TestCase):
                             "World": 2
                         }
                     }
+                },
+                "any_dict_value": {
+                    "Hello": 4,
+                    "World": ":D"
                 }
             },
         ]

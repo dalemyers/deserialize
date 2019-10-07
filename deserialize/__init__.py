@@ -32,6 +32,9 @@ def deserialize(class_reference, data):
 def _deserialize(class_reference, data, debug_name):
     """Deserialize data to a Python object, but allow base types"""
 
+    if class_reference == Any:
+        return data
+
     if is_union(class_reference):
         valid_types = union_types(class_reference)
         for valid_type in valid_types:
