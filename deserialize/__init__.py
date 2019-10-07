@@ -62,6 +62,12 @@ def _deserialize(class_reference, data, debug_name):
     # If we still have a type from the typing module, we don't know how to
     # handle it
     if is_typing_type(class_reference):
+        # The data should not be None if we have a type that got here. Optionals
+        # are handled by unions above, so if we are here, it's a non-optional
+        # type and therefore should not be None.
+        if data is None:
+            raise DeserializeException(f"No value for '{debug_name}'. Expected value of type '{class_reference}'")
+
         raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
 
     # Whatever we have left now is either correct, or invalid
