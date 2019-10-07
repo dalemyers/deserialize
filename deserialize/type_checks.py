@@ -76,6 +76,9 @@ def list_content_type(type_value):
 def is_dict(type_value):
     """Check if a type is a dict type."""
 
+    if type_value is dict:
+        return True
+
     if not is_typing_type(type_value):
         return False
 

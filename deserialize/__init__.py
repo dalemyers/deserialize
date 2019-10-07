@@ -32,13 +32,17 @@ def deserialize(class_reference, data):
 def _deserialize(class_reference, data, debug_name):
     """Deserialize data to a Python object, but allow base types"""
 
+    if class_reference == Any:
+        return data
+
     if is_union(class_reference):
         valid_types = union_types(class_reference)
         for valid_type in valid_types:
             try:
                 return _deserialize(valid_type, data, debug_name)
-            except:
+            except DeserializeException:
                 pass
+        raise DeserializeException(f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'")
 
     if isinstance(data, dict):
         return _deserialize_dict(class_reference, data, debug_name)
@@ -58,6 +62,12 @@ def _deserialize(class_reference, data, debug_name):
     # If we still have a type from the typing module, we don't know how to
     # handle it
     if is_typing_type(class_reference):
+        # The data should not be None if we have a type that got here. Optionals
+        # are handled by unions above, so if we are here, it's a non-optional
+        # type and therefore should not be None.
+        if data is None:
+            raise DeserializeException(f"No value for '{debug_name}'. Expected value of type '{class_reference}'")
+
         raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
 
     # Whatever we have left now is either correct, or invalid
@@ -93,6 +103,9 @@ def _deserialize_dict(class_reference, data, debug_name):
     # Check if we are doing a straightforward dictionary parse first, or if it
     # has to be deserialized
     if is_dict(class_reference):
+        if class_reference is dict:
+            # If types of dictionary entries are not defined, do not deserialize
+            return data
         key_type, value_type = dict_content_types(class_reference)
         result = {}
 
