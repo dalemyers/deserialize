@@ -7,3 +7,7 @@ class DeserializeException(Exception):
 
 class InvalidBaseTypeException(DeserializeException):
     """An error where the "base" type to be deserialized was invalid."""
+
+
+class UnhandledFieldException(DeserializeException):
+    """An error thrown when a field is unhandled."""

@@ -62,19 +62,19 @@ class TypeCheckTestSuite(unittest.TestCase):
     def test_union_types(self):
         """Test union_types."""
 
-        self.assertEqual(deserialize.union_types(Union[str, int]), [str, int])
+        self.assertEqual(deserialize.union_types(Union[str, int]), {str, int})
         self.assertEqual(
-            deserialize.union_types(Union[Dict[str, str], int]), [Dict[str, str], int]
+            deserialize.union_types(Union[Dict[str, str], int]), {Dict[str, str], int}
         )
-        self.assertEqual(deserialize.union_types(Union[int, None]), [int, type(None)])
-        self.assertEqual(deserialize.union_types(Union[None, int]), [type(None), int])
+        self.assertEqual(deserialize.union_types(Union[int, None]), {int, type(None)})
+        self.assertEqual(deserialize.union_types(Union[None, int]), {type(None), int})
 
         # Optional[Optional[X]] == Optional[X]
         self.assertEqual(
-            deserialize.union_types(Union[Union[int, None], None]), [int, type(None)]
+            deserialize.union_types(Union[Union[int, None], None]), {int, type(None)}
         )
         self.assertEqual(
-            deserialize.union_types(Union[None, Optional[str]]), [type(None), str]
+            deserialize.union_types(Union[None, Optional[str]]), {type(None), str}
         )
 
         with self.assertRaises(deserialize.DeserializeException):

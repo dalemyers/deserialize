@@ -18,11 +18,15 @@ from deserialize.decorators import (
     parser,
     _get_parser,
 )
-from deserialize.exceptions import DeserializeException, InvalidBaseTypeException
+from deserialize.exceptions import (
+    DeserializeException,
+    InvalidBaseTypeException,
+    UnhandledFieldException,
+)
 from deserialize.type_checks import *
 
-
-def deserialize(class_reference, data):
+# pylint: disable=function-redefined
+def deserialize(class_reference, data, throw_on_unhandled: bool = False):
     """Deserialize data to a Python object."""
 
     if not isinstance(data, dict) and not isinstance(data, list):
@@ -35,10 +39,13 @@ def deserialize(class_reference, data):
     except AttributeError:
         name = str(class_reference)
 
-    return _deserialize(class_reference, data, name)
+    return _deserialize(class_reference, data, name, throw_on_unhandled=throw_on_unhandled)
 
 
-def _deserialize(class_reference, data, debug_name):
+# pylint: enable=function-redefined
+
+
+def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
     """Deserialize data to a Python object, but allow base types"""
 
     if class_reference == Any:
@@ -48,7 +55,7 @@ def _deserialize(class_reference, data, debug_name):
         valid_types = union_types(class_reference)
         for valid_type in valid_types:
             try:
-                return _deserialize(valid_type, data, debug_name)
+                return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
             except DeserializeException:
                 pass
         raise DeserializeException(
@@ -56,10 +63,10 @@ def _deserialize(class_reference, data, debug_name):
         )
 
     if isinstance(data, dict):
-        return _deserialize_dict(class_reference, data, debug_name)
+        return _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled)
 
     if isinstance(data, list):
-        return _deserialize_list(class_reference, data, debug_name)
+        return _deserialize_list(class_reference, data, debug_name, throw_on_unhandled)
 
     if not is_typing_type(class_reference) and issubclass(class_reference, enum.Enum):
         try:
@@ -81,9 +88,7 @@ def _deserialize(class_reference, data, debug_name):
                 f"No value for '{debug_name}'. Expected value of type '{class_reference}'"
             )
 
-        raise DeserializeException(
-            f"Unsupported deserialization type: {class_reference}"
-        )
+        raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
 
     # Whatever we have left now is either correct, or invalid
     if isinstance(data, class_reference):
@@ -94,7 +99,7 @@ def _deserialize(class_reference, data, debug_name):
     )
 
 
-def _deserialize_list(class_reference, list_data, debug_name):
+def _deserialize_list(class_reference, list_data, debug_name, throw_on_unhandled):
 
     if not isinstance(list_data, list):
         raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list.")
@@ -108,18 +113,26 @@ def _deserialize_list(class_reference, list_data, debug_name):
 
     for index, item in enumerate(list_data):
         deserialized = _deserialize(
-            list_content_type_value, item, f"{debug_name}[{index}]"
+            list_content_type_value, item, f"{debug_name}[{index}]", throw_on_unhandled
         )
         output.append(deserialized)
 
     return output
 
 
-def _deserialize_dict(class_reference, data, debug_name):
+def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
     """Deserialize a dictionary to a Python object."""
 
     # Check if we are doing a straightforward dictionary parse first, or if it
     # has to be deserialized
+
+    remaining_properties = set(data.keys())
+
+    if not isinstance(data, dict):
+        raise DeserializeException(
+            f"Data was not dict for instance: {class_reference} for {debug_name}"
+        )
+
     if is_dict(class_reference):
         if class_reference is dict:
             # If types of dictionary entries are not defined, do not deserialize
@@ -135,7 +148,14 @@ def _deserialize_dict(class_reference, data, debug_name):
                 )
 
             result[dict_key] = _deserialize(
-                value_type, dict_value, f"{debug_name}.{dict_key}"
+                value_type, dict_value, f"{debug_name}.{dict_key}", throw_on_unhandled
+            )
+
+            remaining_properties.remove(dict_key)
+
+        if throw_on_unhandled and len(remaining_properties) > 0:
+            raise UnhandledFieldException(
+                f"The following field was unhandled: {list(remaining_properties)[0]} for {debug_name}"
             )
 
         return result
@@ -151,17 +171,36 @@ def _deserialize_dict(class_reference, data, debug_name):
 
     class_instance = class_reference()
 
+    handled_properties = set()
+
     for attribute_name, attribute_type in hints.items():
+        handled_properties.add(attribute_name)
+
         if _should_ignore(class_reference, attribute_name):
             continue
 
         property_key = _get_key(class_reference, attribute_name)
         parser_function = _get_parser(class_reference, property_key)
-        property_value = parser_function(data.get(property_key))
+        try:
+            value = data[property_key]
+            handled_properties.add(property_key)
+        except KeyError:
+            if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
+                raise DeserializeException(f"Unexpected missing value for: {debug_name}")
+            value = None
+
+        property_value = parser_function(value)
 
         deserialized_value = _deserialize(
-            attribute_type, property_value, f"{debug_name}.{attribute_name}"
+            attribute_type, property_value, f"{debug_name}.{attribute_name}", throw_on_unhandled,
         )
         setattr(class_instance, attribute_name, deserialized_value)
+
+    unhandled = set(data.keys()) - handled_properties
+    if len(unhandled) > 0:
+        raise UnhandledFieldException(f"Unhandled field: {list(unhandled)[0]}")
+
+    if throw_on_unhandled and len(remaining_properties) > 0:
+        raise UnhandledFieldException(UnhandledFieldException(list(remaining_properties)[0]))
 
     return class_instance

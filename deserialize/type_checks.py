@@ -49,7 +49,7 @@ def union_types(type_value):
             f"Cannot extract union types from non-union type: {type_value}"
         )
 
-    return list(type_value.__args__)
+    return set(type_value.__args__)
 
 
 def is_list(type_value):
