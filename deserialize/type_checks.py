@@ -5,7 +5,8 @@ import typing
 
 import deserialize.exceptions
 
-#pylint: disable=protected-access
+# pylint: disable=protected-access
+
 
 def is_typing_type(class_reference):
     """Check if the supplied type is one defined by the `typing` module.
@@ -42,7 +43,9 @@ def is_union(type_value):
 def union_types(type_value):
     """Return the list of types in a Union."""
     if not is_union(type_value):
-        raise deserialize.exceptions.DeserializeException(f"Cannot extract union types from non-union type: {type_value}")
+        raise deserialize.exceptions.DeserializeException(
+            f"Cannot extract union types from non-union type: {type_value}"
+        )
 
     return list(type_value.__args__)
 

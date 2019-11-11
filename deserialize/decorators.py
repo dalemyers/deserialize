@@ -1,5 +1,6 @@
 """Decorators used for adding functionality to the library."""
 
+
 def ignore(property_name):
     """A decorator function for marking keys as those which should be ignored."""
 
