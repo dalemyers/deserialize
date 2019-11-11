@@ -19,14 +19,16 @@ def is_typing_type(class_reference):
         try:
             if class_reference.__origin__ == typing.Union:
                 return True
-        except:
+        except AttributeError:
             # Not everything has the __origin__ member
             pass
 
+        # pylint: disable=no-member
         if isinstance(class_reference, typing._TypeAlias):
             return True
 
         return isinstance(class_reference, typing.GenericMeta)
+        # pylint: enable=no-member
 
     return isinstance(class_reference, typing._GenericAlias)
 
@@ -47,7 +49,7 @@ def union_types(type_value):
             f"Cannot extract union types from non-union type: {type_value}"
         )
 
-    return list(type_value.__args__)
+    return set(type_value.__args__)
 
 
 def is_list(type_value):
