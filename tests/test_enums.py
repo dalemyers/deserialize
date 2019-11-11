@@ -6,10 +6,11 @@ import sys
 from typing import Optional
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#pylint: disable=wrong-import-position
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# pylint: disable=wrong-import-position
 import deserialize
-#pylint: enable=wrong-import-position
+
+# pylint: enable=wrong-import-position
 
 
 class SomeStringEnum(enum.Enum):
@@ -30,6 +31,7 @@ class SomeIntEnum(enum.Enum):
 
 class SomeClass:
     """Simple enum test class."""
+
     my_value: int
     my_enum: SomeStringEnum
     my_optional_enum: Optional[SomeIntEnum]
@@ -65,7 +67,9 @@ class EnumTestSuite(unittest.TestCase):
             if test_case["my_optional_enum"] is None:
                 self.assertIsNone(instance.my_optional_enum)
             else:
-                self.assertEqual(test_case["my_optional_enum"], instance.my_optional_enum.value)
+                self.assertEqual(
+                    test_case["my_optional_enum"], instance.my_optional_enum.value
+                )
 
         for test_case in invalid_test_cases:
             with self.assertRaises(deserialize.DeserializeException):

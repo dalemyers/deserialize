@@ -4,17 +4,20 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#pylint: disable=wrong-import-position
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# pylint: disable=wrong-import-position
 import deserialize
-#pylint: enable=wrong-import-position
+
+# pylint: enable=wrong-import-position
 
 
 @deserialize.ignore("field_2")
 class SampleItem:
     """Sample item for use in tests."""
+
     field_1: int
     field_2: int
+
 
 class DeserializationInogreTestSuite(unittest.TestCase):
     """Deserialization ignore test cases."""

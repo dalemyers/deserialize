@@ -5,33 +5,40 @@ import sys
 from typing import List
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#pylint: disable=wrong-import-position
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# pylint: disable=wrong-import-position
 import deserialize
-#pylint: enable=wrong-import-position
+
+# pylint: enable=wrong-import-position
 
 
 class Actor:
     """Represents an actor."""
+
     name: str
     age: int
 
+
 class Episode:
     """Represents an episode."""
+
     title: str
     identifier: str
     actors: List[Actor]
 
+
 class Season:
     """Represents a season."""
+
     episodes: List[Episode]
     completed: bool
 
+
 class TVShow:
     """Represents a TV show."""
+
     seasons: List[Season]
     creator: str
-
 
 
 class DeserializationExampleTestSuite(unittest.TestCase):
@@ -40,36 +47,15 @@ class DeserializationExampleTestSuite(unittest.TestCase):
     def test_example(self):
         """Test that the example from the README deserializes correctly."""
 
-        actor_data = [
-            {
-                "name": "Man",
-                "age": 35
-            },
-            {
-                "name": "Woman",
-                "age": 52
-            }
-        ]
+        actor_data = [{"name": "Man", "age": 35}, {"name": "Woman", "age": 52}]
 
         episode_data = [
-            {
-                "title": "Some Episode",
-                "identifier": "abcdef",
-                "actors": actor_data
-            }
+            {"title": "Some Episode", "identifier": "abcdef", "actors": actor_data}
         ]
 
-        season_data = [
-            {
-                "episodes": episode_data,
-                "completed": True
-            }
-        ]
+        season_data = [{"episodes": episode_data, "completed": True}]
 
-        show_data = {
-            "seasons": season_data,
-            "creator": "Person"
-        }
+        show_data = {"seasons": season_data, "creator": "Person"}
 
         show = deserialize.deserialize(TVShow, show_data)
         self.assertEqual(show.creator, show_data["creator"])

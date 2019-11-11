@@ -1,15 +1,15 @@
 """Test deserializing."""
 
 import os
-import re
 import sys
-from typing import Any, Callable, Dict, List, Optional, Pattern, Union
+from typing import Any, Dict, List, Optional, Union
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#pylint: disable=wrong-import-position
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# pylint: disable=wrong-import-position
 import deserialize
-#pylint: enable=wrong-import-position
+
+# pylint: enable=wrong-import-position
 
 
 class UnannotatedClass:
@@ -21,6 +21,7 @@ class UnannotatedClass:
 
 class SinglePropertySimpleType:
     """Test class with a single property of a simple type."""
+
     my_property: int
 
     def __str__(self):
@@ -29,18 +30,22 @@ class SinglePropertySimpleType:
 
 class MultiPropertySimpleType:
     """Test class with multiple properties of a simple type."""
+
     my_int_property: int
     my_str_property: str
 
     def __str__(self):
-        return str({
-            "my_int_property": self.my_int_property,
-            "my_str_property": self.my_str_property
-        })
+        return str(
+            {
+                "my_int_property": self.my_int_property,
+                "my_str_property": self.my_str_property,
+            }
+        )
 
 
 class SinglePropertyComplexType:
     """Test class with a single property of a complex type."""
+
     my_list: List[int]
 
     def __str__(self):
@@ -49,6 +54,7 @@ class SinglePropertyComplexType:
 
 class ComplexNestedType:
     """Test class with complex nested information."""
+
     one: int
     two: Optional[str]
     three: SinglePropertySimpleType
@@ -57,30 +63,35 @@ class ComplexNestedType:
     six: List[SinglePropertyComplexType]
 
     def __str__(self):
-        return str({
-            "one": self.one,
-            "two": self.two,
-            "three": str(self.three),
-            "four": str(self.four),
-            "five": str(self.five),
-            "six": str([str(item) for item in self.six])
-        })
+        return str(
+            {
+                "one": self.one,
+                "two": self.two,
+                "three": str(self.three),
+                "four": str(self.four),
+                "five": str(self.five),
+                "six": str([str(item) for item in self.six]),
+            }
+        )
 
 
 class TypeWithSimpleDict:
     """Test a class that has a simple dict embedded."""
+
     value: int
     dict_value: dict
 
 
 class TypeWithDict:
     """Test a class that has a dict embedded."""
+
     value: int
     dict_value: Dict[str, int]
 
 
 class TypeWithComplexDict:
     """Test a class that has a complex dict embedded."""
+
     value: int
     dict_value: Dict[str, TypeWithDict]
     any_dict_value: Dict[str, Any]
@@ -88,11 +99,13 @@ class TypeWithComplexDict:
 
 class TypeWithUnion:
     """Test a class that has a Union embedded."""
+
     union_value: Union[str, int]
 
 
 class NonJsonTypes:
     """Test a class that uses base types that aren't JSON compatible."""
+
     one: tuple
     two: range
 
@@ -111,7 +124,7 @@ class DeserializationTestSuite(unittest.TestCase):
         invalid_test_cases = [
             {"my_property": None},
             {"my_property": 3.14156},
-            {"my_property": "Hello"}
+            {"my_property": "Hello"},
         ]
 
         for test_case in valid_test_cases:
@@ -182,31 +195,25 @@ class DeserializationTestSuite(unittest.TestCase):
                 "one": 1,
                 "two": "2",
                 "three": {"my_property": 3},
-                "four": {
-                    "my_int_property": 34,
-                    "my_str_property": "Hello"
-                },
+                "four": {"my_int_property": 34, "my_str_property": "Hello"},
                 "five": {"my_property": 3},
                 "six": [
                     {"my_list": []},
                     {"my_list": [1, 2, 3]},
                     {"my_list": [2, -4, 23]},
-                ]
+                ],
             },
             {
                 "one": 12312312,
                 "two": None,
                 "three": {"my_property": 3},
-                "four": {
-                    "my_int_property": 34,
-                    "my_str_property": "Hello"
-                },
+                "four": {"my_int_property": 34, "my_str_property": "Hello"},
                 "five": None,
                 "six": [
                     {"my_list": []},
                     {"my_list": [1, 2, 3]},
                     {"my_list": [2, -4, 23]},
-                ]
+                ],
             },
         ]
 
@@ -215,31 +222,25 @@ class DeserializationTestSuite(unittest.TestCase):
                 "one": None,
                 "two": "2",
                 "three": {"my_property": 3},
-                "four": {
-                    "my_int_property": 34,
-                    "my_str_property": "Hello"
-                },
+                "four": {"my_int_property": 34, "my_str_property": "Hello"},
                 "five": {"my_property": 3},
                 "six": [
                     {"my_list": []},
                     {"my_list": [1, 2, 3]},
                     {"my_list": [2, -4, 23]},
-                ]
+                ],
             },
             {
                 "one": 12312312,
                 "two": None,
                 "three": {"my_property": 3},
-                "four": {
-                    "my_int_property": 34,
-                    "my_str_property": "Hello"
-                },
+                "four": {"my_int_property": 34, "my_str_property": "Hello"},
                 "five": None,
                 "six": [
                     {"my_list": []},
                     {"my_list": [1, "Test", 3]},
                     {"my_list": [2, -4, 23]},
-                ]
+                ],
             },
         ]
 
@@ -247,15 +248,25 @@ class DeserializationTestSuite(unittest.TestCase):
             instance = deserialize.deserialize(ComplexNestedType, test_case)
             self.assertEqual(test_case["one"], instance.one)
             self.assertEqual(test_case["two"], instance.two)
-            self.assertEqual(test_case["three"]["my_property"], instance.three.my_property)
-            self.assertEqual(test_case["four"]["my_int_property"], instance.four.my_int_property)
-            self.assertEqual(test_case["four"]["my_str_property"], instance.four.my_str_property)
+            self.assertEqual(
+                test_case["three"]["my_property"], instance.three.my_property
+            )
+            self.assertEqual(
+                test_case["four"]["my_int_property"], instance.four.my_int_property
+            )
+            self.assertEqual(
+                test_case["four"]["my_str_property"], instance.four.my_str_property
+            )
             if test_case["five"] is None:
                 self.assertIsNone(instance.five)
             else:
-                self.assertEqual(test_case["five"]["my_property"], instance.five.my_property)
+                self.assertEqual(
+                    test_case["five"]["my_property"], instance.five.my_property
+                )
             for i in range(0, len(test_case["six"])):
-                self.assertEqual(test_case["six"][i]["my_list"], instance.six[i].my_list)
+                self.assertEqual(
+                    test_case["six"][i]["my_list"], instance.six[i].my_list
+                )
 
         for test_case in invalid_test_cases:
             with self.assertRaises(deserialize.DeserializeException):
@@ -263,9 +274,7 @@ class DeserializationTestSuite(unittest.TestCase):
 
     def test_unannotated(self):
         """Test parsing unannotated classes."""
-        data = {
-            "value": 1
-        }
+        data = {"value": 1}
 
         with self.assertRaises(deserialize.DeserializeException):
             _ = deserialize.deserialize(UnannotatedClass, data)
@@ -274,17 +283,8 @@ class DeserializationTestSuite(unittest.TestCase):
         """Test parsing types with dicts."""
 
         test_cases = [
-            {
-                "value": 1,
-                "dict_value": {
-                    "Hello": 1,
-                    "World": 2
-                }
-            },
-            {
-                "value": 1,
-                "dict_value": {}
-            },
+            {"value": 1, "dict_value": {"Hello": 1, "World": 2}},
+            {"value": 1, "dict_value": {}},
         ]
 
         for test_case in test_cases:
@@ -294,24 +294,9 @@ class DeserializationTestSuite(unittest.TestCase):
                 self.assertEqual(instance.dict_value.get(key), value)
 
         failure_cases = [
-            {
-                "value": 1,
-                "dict_value": {
-                    "Hello": "one",
-                    "World": "two"
-                }
-            },
-            {
-                "value": 1,
-                "dict_value": {
-                    1: "one",
-                    2: "two"
-                }
-            },
-            {
-                "value": 1,
-                "dict_value": []
-            },
+            {"value": 1, "dict_value": {"Hello": "one", "World": "two"}},
+            {"value": 1, "dict_value": {1: "one", 2: "two"}},
+            {"value": 1, "dict_value": []},
         ]
 
         for test_case in failure_cases:
@@ -322,17 +307,8 @@ class DeserializationTestSuite(unittest.TestCase):
         """Test parsing types with dicts."""
 
         test_cases = [
-            {
-                "value": 1,
-                "dict_value": {
-                    "Hello": 1,
-                    "World": 2
-                }
-            },
-            {
-                "value": 1,
-                "dict_value": {}
-            },
+            {"value": 1, "dict_value": {"Hello": 1, "World": 2}},
+            {"value": 1, "dict_value": {}},
         ]
 
         for test_case in test_cases:
@@ -342,10 +318,7 @@ class DeserializationTestSuite(unittest.TestCase):
                 self.assertEqual(instance.dict_value.get(key), value)
 
         failure_cases = [
-            {
-                "value": 1,
-                "dict_value": []
-            },
+            {"value": 1, "dict_value": []},
         ]
 
         for test_case in failure_cases:
@@ -359,18 +332,9 @@ class DeserializationTestSuite(unittest.TestCase):
             {
                 "value": 1,
                 "dict_value": {
-                    "Hello": {
-                        "value": 1,
-                        "dict_value": {
-                            "Hello": 1,
-                            "World": 2
-                        }
-                    }
+                    "Hello": {"value": 1, "dict_value": {"Hello": 1, "World": 2}}
                 },
-                "any_dict_value": {
-                    "Hello": 4,
-                    "World": ":D"
-                }
+                "any_dict_value": {"Hello": 4, "World": ":D"},
             },
         ]
 
@@ -384,32 +348,14 @@ class DeserializationTestSuite(unittest.TestCase):
                 self.assertEqual(sub_instance.dict_value.get(key), value)
 
         failure_cases = [
+            {"value": 1, "dict_value": {"Hello": {}}},
             {
                 "value": 1,
                 "dict_value": {
-                    "Hello": {}
-                }
+                    "Hello": {"value": 1, "dict_value": {"Hello": "one", "World": 2}}
+                },
             },
-            {
-                "value": 1,
-                "dict_value": {
-                    "Hello": {
-                        "value": 1,
-                        "dict_value": {
-                            "Hello": "one",
-                            "World": 2
-                        }
-                    }
-                }
-            },
-            {
-                "value": 1,
-                "dict_value": {
-                    "Hello": {
-                        "value": 1
-                    }
-                }
-            },
+            {"value": 1, "dict_value": {"Hello": {"value": 1}}},
         ]
 
         for test_case in failure_cases:
@@ -420,12 +366,8 @@ class DeserializationTestSuite(unittest.TestCase):
         """Test parsing types with complex dicts."""
 
         test_cases = [
-            {
-                "union_value": "one"
-            },
-            {
-                "union_value": 1
-            },
+            {"union_value": "one"},
+            {"union_value": 1},
         ]
 
         for test_case in test_cases:
@@ -433,9 +375,7 @@ class DeserializationTestSuite(unittest.TestCase):
             self.assertEqual(instance.union_value, test_case["union_value"])
 
         failure_cases = [
-            {
-                "union_value": None
-            },
+            {"union_value": None},
         ]
 
         for test_case in failure_cases:
@@ -445,10 +385,7 @@ class DeserializationTestSuite(unittest.TestCase):
     def test_non_json_types(self):
         """Test parsing types that are not JSON compatible."""
 
-        data = {
-            "one": (1,2),
-            "two": range(3)
-        }
+        data = {"one": (1, 2), "two": range(3)}
 
         result = deserialize.deserialize(NonJsonTypes, data)
         self.assertEqual(data["one"], result.one)
