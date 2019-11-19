@@ -50,6 +50,22 @@ def deserialize(class_reference, data, throw_on_unhandled: bool = False):
 def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
     """Deserialize data to a Python object, but allow base types"""
 
+    # In here we try and use some "heuristics" to deserialize. We have 2 main
+    # options to do this. For the first, we can take the expected type and try
+    # and deserialize the data to that and show any errors. The other option is
+    # to take the data, and try and determine the types and deserialize that
+    # way. We do a mix of both.
+    #
+    # For example, we check if we have an any type or None type first and return
+    # early, since we can't deserialize directly to those (since that doesn't
+    # make any sense). But then later, we can't go for a list directly to a
+    # type, so we have to go through each item in the data, and iterate.
+    #
+    # This produces quite a complex interweaving of operations. The general
+    # approach I've found to work is to try and do specific type checks first,
+    # then handle collection data, then any other types afterwards. That's not
+    # set in stone though.
+
     if class_reference == Any:
         return data
 
