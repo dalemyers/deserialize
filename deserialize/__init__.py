@@ -53,14 +53,14 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
 
     if is_union(class_reference):
         valid_types = union_types(class_reference)
+        last_exception = None
         for valid_type in valid_types:
             try:
                 return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
-            except DeserializeException:
-                pass
-        raise DeserializeException(
-            f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'"
-        )
+            except DeserializeException as exception:
+                exception.__context__ = last_exception
+                last_exception = exception
+        raise last_exception
 
     if isinstance(data, dict):
         return _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled)
