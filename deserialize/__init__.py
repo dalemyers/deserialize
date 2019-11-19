@@ -60,7 +60,9 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
             except DeserializeException as exception:
                 exception.__context__ = last_exception
                 last_exception = exception
-        raise last_exception
+        raise DeserializeException(
+            f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'"
+        ) from last_exception
 
     if isinstance(data, dict):
         return _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled)
