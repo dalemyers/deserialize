@@ -6,15 +6,18 @@ import sys
 from typing import Callable, List, Optional
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#pylint: disable=wrong-import-position
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# pylint: disable=wrong-import-position
 import deserialize
-#pylint: enable=wrong-import-position
+
+# pylint: enable=wrong-import-position
 
 
 class Item:
     """Sample item for use in tests."""
+
     field: int
+
 
 class Empty:
     """Sample empty item"""
@@ -26,9 +29,7 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
     def test_dicts(self):
         """Test that root dicts deserialize correctly."""
 
-        data = {
-            "field": 1
-        }
+        data = {"field": 1}
 
         instance = deserialize.deserialize(Item, data)
         self.assertEqual(data["field"], instance.field)
@@ -44,11 +45,7 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
     def test_lists(self):
         """Test that root lists deserialize correctly."""
 
-        data = [
-            {
-                "field": 1
-            }
-        ]
+        data = [{"field": 1}]
 
         instances = deserialize.deserialize(List[Item], data)
 
@@ -58,13 +55,7 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
     def test_list_of_lists(self):
         """Test that root lists deserialize correctly."""
 
-        data = [
-            [
-                {
-                    "field": 1
-                }
-            ]
-        ]
+        data = [[{"field": 1}]]
 
         instances = deserialize.deserialize(List[List[Item]], data)
 
@@ -99,7 +90,7 @@ class DeserializationBaseTypesTestSuite(unittest.TestCase):
             (3.14159, float),
             (datetime.datetime.now(), datetime.datetime),
             (set([]), set),
-            ((1,2), tuple),
+            ((1, 2), tuple),
             (range(3), range),
         ]
 
