@@ -39,7 +39,9 @@ def deserialize(class_reference, data, throw_on_unhandled: bool = False):
     except AttributeError:
         name = str(class_reference)
 
-    return _deserialize(class_reference, data, name, throw_on_unhandled=throw_on_unhandled)
+    return _deserialize(
+        class_reference, data, name, throw_on_unhandled=throw_on_unhandled
+    )
 
 
 # pylint: enable=function-redefined
@@ -79,11 +81,15 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
             try:
                 return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
             except DeserializeException as ex:
-                exceptions.append("\t" + str(ex))
-        raise DeserializeException(
-            f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'. Sub errors:\n"
-            + "\n".join(exceptions)
-        )
+                exceptions.append(str(ex))
+        exception_message = f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}' ->"
+        for exception in exceptions:
+            exception_lines = exception.split("\n")
+            sub_message = f"\n\t* {exception_lines[0]}"
+            for line in exception_lines[1:]:
+                sub_message += f"\n\t{line}"
+            exception_message += sub_message
+        raise DeserializeException(exception_message)
 
     if isinstance(data, dict):
         return _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled)
@@ -111,7 +117,9 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
                 f"No value for '{debug_name}'. Expected value of type '{class_reference}'"
             )
 
-        raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
+        raise DeserializeException(
+            f"Unsupported deserialization type: {class_reference}"
+        )
 
     # Whatever we have left now is either correct, or invalid
     if isinstance(data, class_reference):
@@ -211,14 +219,21 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
             value = data[property_key]
             handled_properties.add(property_key)
         except KeyError:
-            if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
-                raise DeserializeException(f"Unexpected missing value for: {debug_name}")
+            if not is_union(attribute_type) or type(None) not in union_types(
+                attribute_type
+            ):
+                raise DeserializeException(
+                    f"Unexpected missing value for: {debug_name}"
+                )
             value = None
 
         property_value = parser_function(value)
 
         deserialized_value = _deserialize(
-            attribute_type, property_value, f"{debug_name}.{attribute_name}", throw_on_unhandled,
+            attribute_type,
+            property_value,
+            f"{debug_name}.{attribute_name}",
+            throw_on_unhandled,
         )
         setattr(class_instance, attribute_name, deserialized_value)
 
