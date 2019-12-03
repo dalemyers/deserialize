@@ -78,9 +78,6 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
         for valid_type in valid_types:
             try:
                 return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
-            except UnhandledFieldException as ex:
-                if throw_on_unhandled:
-                    exceptions.append(ex)
             except DeserializeException as ex:
                 exceptions.append(str(ex))
         raise DeserializeException(
@@ -226,10 +223,7 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
         setattr(class_instance, attribute_name, deserialized_value)
 
     unhandled = set(data.keys()) - handled_properties
-    if len(unhandled) > 0:
+    if throw_on_unhandled and len(unhandled) > 0:
         raise UnhandledFieldException(f"Unhandled field: {list(unhandled)[0]}")
-
-    if throw_on_unhandled and len(remaining_properties) > 0:
-        raise UnhandledFieldException(UnhandledFieldException(list(remaining_properties)[0]))
 
     return class_instance
