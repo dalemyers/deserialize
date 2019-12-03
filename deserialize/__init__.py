@@ -39,9 +39,7 @@ def deserialize(class_reference, data, throw_on_unhandled: bool = False):
     except AttributeError:
         name = str(class_reference)
 
-    return _deserialize(
-        class_reference, data, name, throw_on_unhandled=throw_on_unhandled
-    )
+    return _deserialize(class_reference, data, name, throw_on_unhandled=throw_on_unhandled)
 
 
 # pylint: enable=function-redefined
@@ -80,6 +78,9 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
         for valid_type in valid_types:
             try:
                 return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
+            except UnhandledFieldException as ex:
+                if throw_on_unhandled:
+                    exceptions.append(ex)
             except DeserializeException as ex:
                 exceptions.append(str(ex))
         raise DeserializeException(
@@ -113,9 +114,7 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
                 f"No value for '{debug_name}'. Expected value of type '{class_reference}'"
             )
 
-        raise DeserializeException(
-            f"Unsupported deserialization type: {class_reference}"
-        )
+        raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
 
     # Whatever we have left now is either correct, or invalid
     if isinstance(data, class_reference):
@@ -215,21 +214,14 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
             value = data[property_key]
             handled_properties.add(property_key)
         except KeyError:
-            if not is_union(attribute_type) or type(None) not in union_types(
-                attribute_type
-            ):
-                raise DeserializeException(
-                    f"Unexpected missing value for: {debug_name}"
-                )
+            if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
+                raise DeserializeException(f"Unexpected missing value for: {debug_name}")
             value = None
 
         property_value = parser_function(value)
 
         deserialized_value = _deserialize(
-            attribute_type,
-            property_value,
-            f"{debug_name}.{attribute_name}",
-            throw_on_unhandled,
+            attribute_type, property_value, f"{debug_name}.{attribute_name}", throw_on_unhandled,
         )
         setattr(class_instance, attribute_name, deserialized_value)
 
@@ -238,8 +230,6 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
         raise UnhandledFieldException(f"Unhandled field: {list(unhandled)[0]}")
 
     if throw_on_unhandled and len(remaining_properties) > 0:
-        raise UnhandledFieldException(
-            UnhandledFieldException(list(remaining_properties)[0])
-        )
+        raise UnhandledFieldException(UnhandledFieldException(list(remaining_properties)[0]))
 
     return class_instance
