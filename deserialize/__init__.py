@@ -79,7 +79,7 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
             try:
                 return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
             except DeserializeException as ex:
-                exceptions.append(str(ex))
+                exceptions.append("\t" + str(ex))
         raise DeserializeException(
             f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'. Sub errors:\n"
             + "\n".join(exceptions)
