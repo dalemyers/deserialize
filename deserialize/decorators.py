@@ -6,9 +6,7 @@ def ignore(property_name):
 
     def store_key_map(class_reference):
         """Store the key map."""
-        try:
-            _ = class_reference.__deserialize_ignore_map__
-        except AttributeError:
+        if not hasattr(class_reference, "__deserialize_ignore_map__"):
             setattr(class_reference, "__deserialize_ignore_map__", {})
 
         class_reference.__deserialize_ignore_map__[property_name] = True
@@ -21,10 +19,10 @@ def ignore(property_name):
 def _should_ignore(class_reference, property_name):
     """Check if a property should be ignored."""
 
-    try:
-        return class_reference.__deserialize_ignore_map__.get(property_name, False)
-    except AttributeError:
+    if not hasattr(class_reference, "__deserialize_ignore_map__"):
         return False
+
+    return class_reference.__deserialize_ignore_map__.get(property_name, False)
 
 
 def key(property_name, key_name):
@@ -32,9 +30,7 @@ def key(property_name, key_name):
 
     def store_key_map(class_reference):
         """Store the key map."""
-        try:
-            _ = class_reference.__deserialize_key_map__
-        except AttributeError:
+        if not hasattr(class_reference, "__deserialize_key_map__"):
             setattr(class_reference, "__deserialize_key_map__", {})
 
         class_reference.__deserialize_key_map__[property_name] = key_name
@@ -47,10 +43,10 @@ def key(property_name, key_name):
 def _get_key(class_reference, property_name):
     """Get the key for the given class and property name."""
 
-    try:
-        return class_reference.__deserialize_key_map__.get(property_name, property_name)
-    except AttributeError:
+    if not hasattr(class_reference, "__deserialize_key_map__"):
         return property_name
+
+    return class_reference.__deserialize_key_map__.get(property_name, property_name)
 
 
 def parser(key_name, parser_function):
@@ -59,9 +55,7 @@ def parser(key_name, parser_function):
     def store_parser_map(class_reference):
         """Store the parser map."""
 
-        try:
-            _ = class_reference.__deserialize_parser_map__
-        except AttributeError:
+        if not hasattr(class_reference, "__deserialize_parser_map__"):
             setattr(class_reference, "__deserialize_parser_map__", {})
 
         class_reference.__deserialize_parser_map__[key_name] = parser_function
@@ -78,7 +72,7 @@ def _get_parser(class_reference, key_name):
         """This parser does nothing. It's simply used as the default."""
         return value
 
-    try:
-        return class_reference.__deserialize_parser_map__.get(key_name, identity_parser)
-    except AttributeError:
+    if not hasattr(class_reference, "__deserialize_parser_map__"):
         return identity_parser
+
+    return class_reference.__deserialize_parser_map__.get(key_name, identity_parser)
