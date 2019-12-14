@@ -19,7 +19,8 @@ def is_typing_type(class_reference):
 
         # Not everything has the __origin__ member
         if hasattr(class_reference, "__origin__"):
-            return class_reference.__origin__ == typing.Union
+            if class_reference.__origin__ == typing.Union:
+                return True
 
         # pylint: disable=no-member
         if isinstance(class_reference, typing._TypeAlias):
