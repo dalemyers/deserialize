@@ -4,6 +4,7 @@ jobs=4
 
 [MESSAGES CONTROL]
 
+# C0330 bad-continuation: [Variable] Wrong hanging indentation before block (add 4 spaces).
 # C1801 len-as-condition: Do not use `len(SEQUENCE)` as condition value
 # R0902 too-many-instance-attributes: Too many instance attributes
 # R0914 too-many-locals: Too many local variables
@@ -11,7 +12,7 @@ jobs=4
 # W1201 logging-not-lazy: Specify string format arguments as logging function parameters
 # W1202 logging-format-interpolation: Use % formatting in logging functions and pass the % parameters as arguments
 # W1203 logging-fstring-interpolation: Use % formatting in logging functions and pass the % parameters as arguments
-disable=C1801,R0902,R0914,W0511,W1201,W1202,W1203
+disable=C0330,C1801,R0902,R0914,W0511,W1201,W1202,W1203
 
 [REPORTS]
 

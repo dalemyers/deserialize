@@ -218,9 +218,7 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
             value = data[property_key]
             handled_properties.add(property_key)
         else:
-            # pylint: disable=bad-continuation
             if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
-                # pylint: enable=bad-continuation
                 raise DeserializeException(f"Unexpected missing value for: {debug_name}")
             value = None
 
