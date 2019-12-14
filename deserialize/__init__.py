@@ -25,8 +25,48 @@ from deserialize.exceptions import (
 )
 from deserialize.type_checks import *
 
+
+class RawStorageMode(enum.Enum):
+    """The storage mode for the raw data on each object.
+
+    If a store mode is set, the data will be stored in the attribute named:
+    `__deserialize_raw__`
+    """
+
+    # Do not store the raw data at all
+    none = "none"
+
+    # Only store the data on the root node
+    root = "root"
+
+    # Store on all objects (WARNING: This can use a significant amount of memory)
+    all = "all"
+
+    def child_mode(self) -> "RawStorageMode":
+        """Determine the mode for child parsing.
+
+        When we move to the next child iteration, we need to change mode
+        in some cases. For instance, if we only store the root node, then we
+        need to set all the children to not be stored.
+
+        :raises Exception: If we get an unexpected storage mode
+
+        :returns: The child raw storage mode
+        """
+        if self == RawStorageMode.none:
+            return RawStorageMode.none
+
+        if self == RawStorageMode.root:
+            return RawStorageMode.none
+
+        if self == RawStorageMode.all:
+            return RawStorageMode.all
+
+        raise DeserializeException(f"Unexpected raw storage mode: {self}")
+
+
 # pylint: disable=function-redefined
-def deserialize(class_reference, data, throw_on_unhandled: bool = False):  # type: ignore
+def deserialize(class_reference, data, *, throw_on_unhandled: bool = False, raw_storage_mode: RawStorageMode = RawStorageMode.none):  # type: ignore
     """Deserialize data to a Python object."""
 
     if not isinstance(data, dict) and not isinstance(data, list):
@@ -39,13 +79,21 @@ def deserialize(class_reference, data, throw_on_unhandled: bool = False):  # typ
     else:
         name = str(class_reference)
 
-    return _deserialize(class_reference, data, name, throw_on_unhandled=throw_on_unhandled)
+    return _deserialize(
+        class_reference,
+        data,
+        name,
+        throw_on_unhandled=throw_on_unhandled,
+        raw_storage_mode=raw_storage_mode,
+    )
 
 
 # pylint: enable=function-redefined
 
 # pylint:disable=too-many-return-statements
-def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
+def _deserialize(
+    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode
+):
     """Deserialize data to a Python object, but allow base types"""
 
     # In here we try and use some "heuristics" to deserialize. We have 2 main
@@ -64,20 +112,39 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
     # then handle collection data, then any other types afterwards. That's not
     # set in stone though.
 
+    def finalize(value: Optional[Any]) -> Optional[Any]:
+        """Run through any finalization steps before returning the value."""
+
+        # Set raw data where applicable
+        if raw_storage_mode in [RawStorageMode.root, RawStorageMode.all]:
+            # We can't set attributes on primitive types
+            if hasattr(value, "__dict__"):
+                setattr(value, "__deserialize_raw__", data)
+
+        return value
+
     if class_reference == Any:
-        return data
+        return finalize(data)
 
     # Check if it's None (since things like Union[int, Optional[str]] become
     # Union[int, str, None] so we end up iterating against it)
     if class_reference == type(None) and data is None:
-        return None
+        return finalize(None)
 
     if is_union(class_reference):
         valid_types = union_types(class_reference)
         exceptions = []
         for valid_type in valid_types:
             try:
-                return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
+                return finalize(
+                    _deserialize(
+                        valid_type,
+                        data,
+                        debug_name,
+                        throw_on_unhandled=throw_on_unhandled,
+                        raw_storage_mode=raw_storage_mode.child_mode(),
+                    )
+                )
             except DeserializeException as ex:
                 exceptions.append(str(ex))
         exception_message = (
@@ -92,14 +159,30 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
         raise DeserializeException(exception_message)
 
     if isinstance(data, dict):
-        return _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled)
+        return finalize(
+            _deserialize_dict(
+                class_reference,
+                data,
+                debug_name,
+                throw_on_unhandled=throw_on_unhandled,
+                raw_storage_mode=raw_storage_mode,
+            )
+        )
 
     if isinstance(data, list):
-        return _deserialize_list(class_reference, data, debug_name, throw_on_unhandled)
+        return finalize(
+            _deserialize_list(
+                class_reference,
+                data,
+                debug_name,
+                throw_on_unhandled=throw_on_unhandled,
+                raw_storage_mode=raw_storage_mode,
+            )
+        )
 
     if not is_typing_type(class_reference) and issubclass(class_reference, enum.Enum):
         try:
-            return class_reference(data)
+            return finalize(class_reference(data))
         # pylint:disable=bare-except
         except:
             # pylint:enable=bare-except
@@ -121,7 +204,7 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
 
     # Whatever we have left now is either correct, or invalid
     if isinstance(data, class_reference):
-        return data
+        return finalize(data)
 
     raise DeserializeException(
         f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'"
@@ -131,7 +214,14 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
 # pylint:enable=too-many-return-statements
 
 
-def _deserialize_list(class_reference, list_data, debug_name, throw_on_unhandled):
+def _deserialize_list(
+    class_reference,
+    list_data,
+    debug_name,
+    *,
+    throw_on_unhandled: bool,
+    raw_storage_mode: RawStorageMode,
+):
 
     if not isinstance(list_data, list):
         raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list.")
@@ -145,14 +235,20 @@ def _deserialize_list(class_reference, list_data, debug_name, throw_on_unhandled
 
     for index, item in enumerate(list_data):
         deserialized = _deserialize(
-            list_content_type_value, item, f"{debug_name}[{index}]", throw_on_unhandled
+            list_content_type_value,
+            item,
+            f"{debug_name}[{index}]",
+            throw_on_unhandled=throw_on_unhandled,
+            raw_storage_mode=raw_storage_mode.child_mode(),
         )
         output.append(deserialized)
 
     return output
 
 
-def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
+def _deserialize_dict(
+    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode
+):
     """Deserialize a dictionary to a Python object."""
 
     # Check if we are doing a straightforward dictionary parse first, or if it
@@ -180,7 +276,11 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
                 )
 
             result[dict_key] = _deserialize(
-                value_type, dict_value, f"{debug_name}.{dict_key}", throw_on_unhandled
+                value_type,
+                dict_value,
+                f"{debug_name}.{dict_key}",
+                throw_on_unhandled=throw_on_unhandled,
+                raw_storage_mode=raw_storage_mode.child_mode(),
             )
 
             remaining_properties.remove(dict_key)
@@ -225,7 +325,11 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
         property_value = parser_function(value)
 
         deserialized_value = _deserialize(
-            attribute_type, property_value, f"{debug_name}.{attribute_name}", throw_on_unhandled,
+            attribute_type,
+            property_value,
+            f"{debug_name}.{attribute_name}",
+            throw_on_unhandled=throw_on_unhandled,
+            raw_storage_mode=raw_storage_mode.child_mode(),
         )
         setattr(class_instance, attribute_name, deserialized_value)
 
