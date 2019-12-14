@@ -203,7 +203,7 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
             f"Could not deserialize {data} into {class_reference} due to lack of type hints"
         )
 
-    class_instance = class_reference()
+    class_instance = class_reference.__new__(class_reference)
 
     handled_properties = set()
 
