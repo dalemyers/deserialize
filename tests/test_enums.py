@@ -67,9 +67,7 @@ class EnumTestSuite(unittest.TestCase):
             if test_case["my_optional_enum"] is None:
                 self.assertIsNone(instance.my_optional_enum)
             else:
-                self.assertEqual(
-                    test_case["my_optional_enum"], instance.my_optional_enum.value
-                )
+                self.assertEqual(test_case["my_optional_enum"], instance.my_optional_enum.value)
 
         for test_case in invalid_test_cases:
             with self.assertRaises(deserialize.DeserializeException):

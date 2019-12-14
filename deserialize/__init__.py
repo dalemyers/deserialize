@@ -39,9 +39,7 @@ def deserialize(class_reference, data, throw_on_unhandled: bool = False):  # typ
     else:
         name = str(class_reference)
 
-    return _deserialize(
-        class_reference, data, name, throw_on_unhandled=throw_on_unhandled
-    )
+    return _deserialize(class_reference, data, name, throw_on_unhandled=throw_on_unhandled)
 
 
 # pylint: enable=function-redefined
@@ -82,7 +80,9 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
                 return _deserialize(valid_type, data, debug_name, throw_on_unhandled)
             except DeserializeException as ex:
                 exceptions.append(str(ex))
-        exception_message = f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}' ->"
+        exception_message = (
+            f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}' ->"
+        )
         for exception in exceptions:
             exception_lines = exception.split("\n")
             sub_message = f"\n\t* {exception_lines[0]}"
@@ -117,9 +117,7 @@ def _deserialize(class_reference, data, debug_name, throw_on_unhandled: bool):
                 f"No value for '{debug_name}'. Expected value of type '{class_reference}'"
             )
 
-        raise DeserializeException(
-            f"Unsupported deserialization type: {class_reference}"
-        )
+        raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
 
     # Whatever we have left now is either correct, or invalid
     if isinstance(data, class_reference):
@@ -221,22 +219,15 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
             handled_properties.add(property_key)
         else:
             # pylint: disable=bad-continuation
-            if not is_union(attribute_type) or type(None) not in union_types(
-                attribute_type
-            ):
+            if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
                 # pylint: enable=bad-continuation
-                raise DeserializeException(
-                    f"Unexpected missing value for: {debug_name}"
-                )
+                raise DeserializeException(f"Unexpected missing value for: {debug_name}")
             value = None
 
         property_value = parser_function(value)
 
         deserialized_value = _deserialize(
-            attribute_type,
-            property_value,
-            f"{debug_name}.{attribute_name}",
-            throw_on_unhandled,
+            attribute_type, property_value, f"{debug_name}.{attribute_name}", throw_on_unhandled,
         )
         setattr(class_instance, attribute_name, deserialized_value)
 

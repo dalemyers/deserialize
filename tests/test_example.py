@@ -49,9 +49,7 @@ class DeserializationExampleTestSuite(unittest.TestCase):
 
         actor_data = [{"name": "Man", "age": 35}, {"name": "Woman", "age": 52}]
 
-        episode_data = [
-            {"title": "Some Episode", "identifier": "abcdef", "actors": actor_data}
-        ]
+        episode_data = [{"title": "Some Episode", "identifier": "abcdef", "actors": actor_data}]
 
         season_data = [{"episodes": episode_data, "completed": True}]
 

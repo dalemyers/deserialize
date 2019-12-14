@@ -63,19 +63,13 @@ class TypeCheckTestSuite(unittest.TestCase):
         """Test union_types."""
 
         self.assertEqual(deserialize.union_types(Union[str, int]), {str, int})
-        self.assertEqual(
-            deserialize.union_types(Union[Dict[str, str], int]), {Dict[str, str], int}
-        )
+        self.assertEqual(deserialize.union_types(Union[Dict[str, str], int]), {Dict[str, str], int})
         self.assertEqual(deserialize.union_types(Union[int, None]), {int, type(None)})
         self.assertEqual(deserialize.union_types(Union[None, int]), {type(None), int})
 
         # Optional[Optional[X]] == Optional[X]
-        self.assertEqual(
-            deserialize.union_types(Union[Union[int, None], None]), {int, type(None)}
-        )
-        self.assertEqual(
-            deserialize.union_types(Union[None, Optional[str]]), {type(None), str}
-        )
+        self.assertEqual(deserialize.union_types(Union[Union[int, None], None]), {int, type(None)})
+        self.assertEqual(deserialize.union_types(Union[None, Optional[str]]), {type(None), str})
 
         with self.assertRaises(deserialize.DeserializeException):
             _ = deserialize.union_types(int)
@@ -105,12 +99,8 @@ class TypeCheckTestSuite(unittest.TestCase):
 
         self.assertEqual(deserialize.list_content_type(List[int]), int)
         self.assertEqual(deserialize.list_content_type(List[str]), str)
-        self.assertEqual(
-            deserialize.list_content_type(List[Dict[str, str]]), Dict[str, str]
-        )
-        self.assertEqual(
-            deserialize.list_content_type(List[Optional[int]]), Optional[int]
-        )
+        self.assertEqual(deserialize.list_content_type(List[Dict[str, str]]), Dict[str, str])
+        self.assertEqual(deserialize.list_content_type(List[Optional[int]]), Optional[int])
         self.assertEqual(deserialize.list_content_type(List[List[int]]), List[int])
 
         with self.assertRaises(TypeError):
@@ -139,16 +129,14 @@ class TypeCheckTestSuite(unittest.TestCase):
         self.assertEqual(deserialize.dict_content_types(Dict[int, int]), (int, int))
         self.assertEqual(deserialize.dict_content_types(Dict[str, int]), (str, int))
         self.assertEqual(
-            deserialize.dict_content_types(Dict[str, Dict[str, str]]),
-            (str, Dict[str, str]),
+            deserialize.dict_content_types(Dict[str, Dict[str, str]]), (str, Dict[str, str]),
         )
         self.assertEqual(
             deserialize.dict_content_types(Dict[Dict[int, int], Dict[str, str]]),
             (Dict[int, int], Dict[str, str]),
         )
         self.assertEqual(
-            deserialize.dict_content_types(Dict[int, Optional[str]]),
-            (int, Optional[str]),
+            deserialize.dict_content_types(Dict[int, Optional[str]]), (int, Optional[str]),
         )
 
         with self.assertRaises(TypeError):
