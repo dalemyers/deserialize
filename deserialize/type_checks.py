@@ -16,12 +16,10 @@ def is_typing_type(class_reference):
 
     if sys.version_info < (3, 7):
         # Union/Optional is a special case since it doesn't inherit.
-        try:
-            if class_reference.__origin__ == typing.Union:
-                return True
-        except AttributeError:
-            # Not everything has the __origin__ member
-            pass
+
+        # Not everything has the __origin__ member
+        if hasattr(class_reference, "__origin__"):
+            return class_reference.__origin__ == typing.Union
 
         # pylint: disable=no-member
         if isinstance(class_reference, typing._TypeAlias):
@@ -58,12 +56,13 @@ def is_list(type_value):
     if not is_typing_type(type_value):
         return False
 
-    try:
-        if sys.version_info < (3, 7):
-            return type_value.__origin__ == typing.List
-        return type_value.__origin__ == list
-    except AttributeError:
+    if not hasattr(type_value, "__origin__"):
         return False
+
+    if sys.version_info < (3, 7):
+        return type_value.__origin__ == typing.List
+
+    return type_value.__origin__ == list
 
 
 def list_content_type(type_value):
@@ -87,12 +86,13 @@ def is_dict(type_value):
     if not is_typing_type(type_value):
         return False
 
-    try:
-        if sys.version_info < (3, 7):
-            return type_value.__origin__ == typing.Dict
-        return type_value.__origin__ == dict
-    except AttributeError:
+    if not hasattr(type_value, "__origin__"):
         return False
+
+    if sys.version_info < (3, 7):
+        return type_value.__origin__ == typing.Dict
+
+    return type_value.__origin__ == dict
 
 
 def dict_content_types(type_value):

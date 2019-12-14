@@ -34,9 +34,9 @@ def deserialize(class_reference, data, throw_on_unhandled: bool = False):
             "Only lists and dictionaries are supported as base raw data types"
         )
 
-    try:
+    if hasattr(class_reference, "__name__"):
         name = class_reference.__name__
-    except AttributeError:
+    else:
         name = str(class_reference)
 
     return _deserialize(
@@ -215,10 +215,11 @@ def _deserialize_dict(class_reference, data, debug_name, throw_on_unhandled):
 
         property_key = _get_key(class_reference, attribute_name)
         parser_function = _get_parser(class_reference, property_key)
-        try:
+
+        if property_key in data:
             value = data[property_key]
             handled_properties.add(property_key)
-        except KeyError:
+        else:
             if not is_union(attribute_type) or type(None) not in union_types(
                 attribute_type
             ):
