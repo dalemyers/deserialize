@@ -1,6 +1,6 @@
 # Changelog
 
-## [Next] - ????-??-??
+## [1.2.0] - 2019-12-18
 
 ### Added
 - Added ability to specify a default value for missing fields in the data using the `default` decorator.
