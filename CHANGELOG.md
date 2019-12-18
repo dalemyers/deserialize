@@ -2,6 +2,9 @@
 
 ## [Next] - ????-??-??
 
+### Added
+- Added ability to specify a default value for missing fields in the data using the `default` decorator.
+
 ### Fixed
 - Fixed debug name for dictionary attributes for exceptions
 

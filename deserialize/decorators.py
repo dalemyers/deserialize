@@ -1,5 +1,7 @@
 """Decorators used for adding functionality to the library."""
 
+from deserialize.exceptions import NoDefaultSpecifiedException
+
 
 def ignore(property_name):
     """A decorator function for marking keys as those which should be ignored."""
@@ -66,7 +68,7 @@ def parser(key_name, parser_function):
 
 
 def _get_parser(class_reference, key_name):
-    """Get the parser for the given class and keu name."""
+    """Get the parser for the given class and key name."""
 
     def identity_parser(value):
         """This parser does nothing. It's simply used as the default."""
@@ -76,3 +78,46 @@ def _get_parser(class_reference, key_name):
         return identity_parser
 
     return class_reference.__deserialize_parser_map__.get(key_name, identity_parser)
+
+
+def default(key_name, default_value):
+    """A decorator function for mapping default values to key names."""
+
+    def store_defaults_map(class_reference):
+        """Store the defaults map."""
+
+        if not hasattr(class_reference, "__deserialize_defaults_map__"):
+            setattr(class_reference, "__deserialize_defaults_map__", {})
+
+        class_reference.__deserialize_defaults_map__[key_name] = default_value
+
+        return class_reference
+
+    return store_defaults_map
+
+
+def _has_default(class_reference, key_name):
+    """Returns True if this key has a default, False otherwise.
+
+    :returns: True if this key has a default, False otherwise.
+    """
+
+    if not hasattr(class_reference, "__deserialize_defaults_map__"):
+        return False
+
+    return key_name in class_reference.__deserialize_defaults_map__
+
+
+def _get_default(class_reference, key_name):
+    """Get the default value for the given class and key name.
+
+    :raises NoDefaultSpecifiedException: If a default hasn't been specified
+    """
+
+    if not hasattr(class_reference, "__deserialize_defaults_map__"):
+        raise NoDefaultSpecifiedException()
+
+    if key_name in class_reference.__deserialize_defaults_map__:
+        return class_reference.__deserialize_defaults_map__[key_name]
+
+    raise NoDefaultSpecifiedException()

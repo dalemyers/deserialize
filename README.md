@@ -158,3 +158,16 @@ Subclassing is supported. If you have a type `Shape` for example, which has a su
 ### Raw Storage
 
 It can sometimes be useful to keep a reference to the raw data that was used to construct an object. To do this, simply set the `raw_storage_mode` paramater to `RawStorageMode.root` or `RawStorageMode.all`. This will store the data in a parameter named `__deserialize_raw__` on the root object, or on all objects in the tree respectively.
+
+### Defaults
+
+Some data will come to you with fields missing. In these cases, a default is often known. To do this, simply decorate your class like this:
+
+```python
+@deserialize.default("value", 0)
+class IntResult:
+    successful: bool
+    value: int
+```
+
+If you pass in data like `{"successful": True}` this will deserialize to a default value of `0` for `value`. Note, that this would not deserialize since `value` is not optional: `{"successful": True, "value": None}`.

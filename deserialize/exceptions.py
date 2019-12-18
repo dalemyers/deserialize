@@ -11,3 +11,10 @@ class InvalidBaseTypeException(DeserializeException):
 
 class UnhandledFieldException(DeserializeException):
     """An error thrown when a field is unhandled."""
+
+
+class NoDefaultSpecifiedException(DeserializeException):
+    """An error thrown when we try and get a default but one has not been specified.
+
+    This is required to differentiate from None as a default value.
+    """

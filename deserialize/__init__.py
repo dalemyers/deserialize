@@ -17,10 +17,14 @@ from deserialize.decorators import (
     _get_key,
     parser,
     _get_parser,
+    default,
+    _get_default,
+    _has_default,
 )
 from deserialize.exceptions import (
     DeserializeException,
     InvalidBaseTypeException,
+    NoDefaultSpecifiedException,
     UnhandledFieldException,
 )
 from deserialize.type_checks import *
@@ -147,6 +151,7 @@ def _deserialize(
                 )
             except DeserializeException as ex:
                 exceptions.append(str(ex))
+
         exception_message = (
             f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}' ->"
         )
@@ -314,23 +319,31 @@ def _deserialize_dict(
         property_key = _get_key(class_reference, attribute_name)
         parser_function = _get_parser(class_reference, property_key)
 
-        if property_key in data:
-            value = data[property_key]
-            handled_properties.add(property_key)
+        using_default = False
+
+        if property_key not in data:
+            if _has_default(class_reference, attribute_name):
+                deserialized_value = _get_default(class_reference, attribute_name)
+                using_default = True
+            else:
+                if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
+                    raise DeserializeException(
+                        f"Unexpected missing value for: {debug_name}.{attribute_name}"
+                    )
+                property_value = parser_function(None)
         else:
-            if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
-                raise DeserializeException(f"Unexpected missing value for: {debug_name}.{attribute_name}")
-            value = None
+            value = data[property_key]
+            property_value = parser_function(value)
 
-        property_value = parser_function(value)
+        if not using_default:
+            deserialized_value = _deserialize(
+                attribute_type,
+                property_value,
+                f"{debug_name}.{attribute_name}",
+                throw_on_unhandled=throw_on_unhandled,
+                raw_storage_mode=raw_storage_mode.child_mode(),
+            )
 
-        deserialized_value = _deserialize(
-            attribute_type,
-            property_value,
-            f"{debug_name}.{attribute_name}",
-            throw_on_unhandled=throw_on_unhandled,
-            raw_storage_mode=raw_storage_mode.child_mode(),
-        )
         setattr(class_instance, attribute_name, deserialized_value)
 
     unhandled = set(data.keys()) - handled_properties
