@@ -319,7 +319,7 @@ def _deserialize_dict(
             handled_properties.add(property_key)
         else:
             if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
-                raise DeserializeException(f"Unexpected missing value for: {debug_name}")
+                raise DeserializeException(f"Unexpected missing value for: {debug_name}.{attribute_name}")
             value = None
 
         property_value = parser_function(value)

@@ -1,5 +1,10 @@
 # Changelog
 
+## [Next] - ????-??-??
+
+### Fixed
+- Fixed debug name for dictionary attributes for exceptions
+
 ## [1.1.0] - 2019-12-14
 
 ### Added
