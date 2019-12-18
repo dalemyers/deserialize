@@ -122,7 +122,7 @@ When deserializing, the library will now ignore the `identifier` property.
 
 Sometimes you'll want something in your object in a format that the data isn't in. For example, if you get the data:
 
-```json
+```python
 {
     "successful": True,
     "timestamp": 1543770752
