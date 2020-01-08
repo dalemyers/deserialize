@@ -26,7 +26,10 @@ def is_typing_type(class_reference):
         if isinstance(class_reference, typing._TypeAlias):
             return True
 
-        return isinstance(class_reference, typing.GenericMeta)
+        if isinstance(class_reference, typing.GenericMeta):
+            return True
+
+        return class_reference.__module__ == "typing"
         # pylint: enable=no-member
 
     return isinstance(class_reference, typing._GenericAlias)
@@ -49,6 +52,18 @@ def union_types(type_value):
         )
 
     return set(type_value.__args__)
+
+
+def is_classvar(type_value):
+    """Check if a type is a ClassVar type."""
+
+    if not is_typing_type(type_value):
+        return False
+
+    if sys.version_info < (3, 7):
+        return type(type_value) == type(typing.ClassVar)
+
+    return type_value.__origin__ == typing.ClassVar
 
 
 def is_list(type_value):

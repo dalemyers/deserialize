@@ -319,6 +319,13 @@ def _deserialize_dict(
         property_key = _get_key(class_reference, attribute_name)
         parser_function = _get_parser(class_reference, property_key)
 
+        if is_classvar(attribute_type):
+            if property_key in data:
+                raise DeserializeException(
+                    f"ClassVars cannot be set: {debug_name}.{attribute_name}"
+                )
+            continue
+
         using_default = False
 
         if property_key not in data:
