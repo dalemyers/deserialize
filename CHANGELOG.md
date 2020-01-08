@@ -1,10 +1,14 @@
 # Changelog
 
+## [1.4.0] - 2020-??-??
+
+### Added
+- Added the ability to allow certain fields through even when `throw_on_unhandled` is set.
+
 ## [1.3.0] - 2020-01-08
 
 ### Changed
 - `ClassVar`s are now ignored when deserializing
-
 
 ## [1.2.0] - 2019-12-18
 

@@ -18,6 +18,14 @@ class Basic:
     two: int
 
 
+@deserialize.allow_unhandled("key")
+class BasicWithAllowedKeys:
+    """Represents a basic class."""
+
+    one: int
+    two: int
+
+
 class DeserializationUnhandledTestSuite(unittest.TestCase):
     """Deserialization unhandled test cases."""
 
@@ -28,4 +36,9 @@ class DeserializationUnhandledTestSuite(unittest.TestCase):
 
         for item in data:
             with self.assertRaises(deserialize.exceptions.UnhandledFieldException):
-                deserialize.deserialize(Basic, item, throw_on_unhandled=True)
+                _ = deserialize.deserialize(Basic, item, throw_on_unhandled=True)
+
+        data = [{"one": 1, "two": 2, "key": 4}]
+
+        for item in data:
+            _ = deserialize.deserialize(BasicWithAllowedKeys, item, throw_on_unhandled=True)

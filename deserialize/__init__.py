@@ -20,6 +20,8 @@ from deserialize.decorators import (
     default,
     _get_default,
     _has_default,
+    allow_unhandled,
+    _should_allow_unhandled,
 )
 from deserialize.exceptions import (
     DeserializeException,
@@ -354,7 +356,12 @@ def _deserialize_dict(
         setattr(class_instance, attribute_name, deserialized_value)
 
     unhandled = set(data.keys()) - handled_properties
+
     if throw_on_unhandled and len(unhandled) > 0:
-        raise UnhandledFieldException(f"Unhandled field: {list(unhandled)[0]}")
+        filtered_unhandled = [
+            key for key in unhandled if not _should_allow_unhandled(class_reference, key)
+        ]
+        if len(filtered_unhandled) > 0:
+            raise UnhandledFieldException(f"Unhandled field: {list(filtered_unhandled)[0]}")
 
     return class_instance

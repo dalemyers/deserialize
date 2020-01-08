@@ -105,6 +105,12 @@ class MyClass:
 
 This will now assign the data with the key `id` to the field `identifier`. You can have multiple annotations to override multiple keys.
 
+### Unhandled Fields
+
+Usually, if you don't specify the field in your definition, but it does exist in the data, you just want to ignore it. Sometimes however, you want to know if there is extra data. In this case, when calling `deserialize(...)` you can set `throw_on_unhandled=True` and it will raise an exception if any fields in the data are unhandled.
+
+Additionally, sometimes you want this, but know of a particular field that can be ignored. You can mark these as allowed to be unhandled with the decorator `@allow_unhandled("key_name")`.
+
 ### Ignored Keys
 
 You may want some properties in your object that aren't loaded from disk, but instead created some other way. To do this, use the `ignore` decorator. Here's an example:
