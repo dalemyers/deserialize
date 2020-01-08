@@ -61,7 +61,9 @@ def is_classvar(type_value):
         return False
 
     if sys.version_info < (3, 7):
+        # pylint: disable=unidiomatic-typecheck
         return type(type_value) == type(typing.ClassVar)
+        # pylint: enable=unidiomatic-typecheck
 
     return type_value.__origin__ == typing.ClassVar
 
