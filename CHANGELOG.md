@@ -4,6 +4,7 @@
 
 ### Added
 - Added the ability to allow certain fields through even when `throw_on_unhandled` is set.
+- Added `@constructed` decorator which takes a function which will be called with any newly created instance.
 
 ## [1.3.0] - 2020-01-08
 

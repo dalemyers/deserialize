@@ -22,6 +22,8 @@ from deserialize.decorators import (
     _has_default,
     allow_unhandled,
     _should_allow_unhandled,
+    constructed,
+    _call_constructed,
 )
 from deserialize.exceptions import (
     DeserializeException,
@@ -363,5 +365,7 @@ def _deserialize_dict(
         ]
         if len(filtered_unhandled) > 0:
             raise UnhandledFieldException(f"Unhandled field: {list(filtered_unhandled)[0]}")
+
+    _call_constructed(class_reference, class_instance)
 
     return class_instance
