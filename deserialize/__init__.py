@@ -315,13 +315,13 @@ def _deserialize_dict(
     handled_properties = set()
 
     for attribute_name, attribute_type in hints.items():
-        handled_properties.add(attribute_name)
-
         if _should_ignore(class_reference, attribute_name):
             continue
 
         property_key = _get_key(class_reference, attribute_name)
         parser_function = _get_parser(class_reference, property_key)
+
+        handled_properties.add(property_key)
 
         if is_classvar(attribute_type):
             if property_key in data:
