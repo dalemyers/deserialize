@@ -59,4 +59,3 @@ class ConstructedTestSuite(unittest.TestCase):
 
         self.assertTrue(-0.0001 < instance.angle - math.pi < 0.0001)
         self.assertEqual(instance.magnitude, data["magnitude"])
-

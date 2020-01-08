@@ -164,4 +164,4 @@ def _call_constructed(class_reference, instance):
     if not hasattr(class_reference, "__deserialize_constructed__"):
         return
 
-    return class_reference.__deserialize_constructed__(instance)
+    class_reference.__deserialize_constructed__(instance)
