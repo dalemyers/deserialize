@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pushd "${VIRTUAL_ENV}" > /dev/null
+pushd "${VIRTUAL_ENV}/.." > /dev/null
 
 source "${VIRTUAL_ENV}/bin/activate"
 
