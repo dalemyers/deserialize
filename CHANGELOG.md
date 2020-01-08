@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.4.1] - 2020-01-08
+
+### Fixed
+- Fixed issue where unhandled fields were not recorded correctly when field and property names differ
+
 ## [1.4.0] - 2020-01-08
 
 ### Added
