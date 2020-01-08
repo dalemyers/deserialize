@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.0] - 2020-??-??
+## [1.4.0] - 2020-01-08
 
 ### Added
 - Added the ability to allow certain fields through even when `throw_on_unhandled` is set.
