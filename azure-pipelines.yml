@@ -21,36 +21,36 @@ jobs:
   - script: curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
     displayName: Install Poetry
 
-  - script: python -m venv $(System.DefaultWorkingDirectory)
+  - script: python -m venv $(System.DefaultWorkingDirectory)/venv
     displayName: Create virtual environment
 
   - script: |
-      source bin/activate
+      source venv/bin/activate
       $HOME/.poetry/bin/poetry install
     displayName: 'Install dependencies'
 
   - script: 
-     source bin/activate
+     source venv/bin/activate
      python -m black --check
     displayName: 'Run Black'
 
   - script: 
-     source bin/activate
+     source venv/bin/activate
      python -m pylint --rcfile=pylintrc deserialize
     displayName: 'Lint'
 
   - script: 
-     source bin/activate
+     source venv/bin/activate
      python -m mypy --ignore-missing-imports deserialize/
     displayName: 'Type Check'
 
   - script: |
-     source bin/activate
+     source venv/bin/activate
      python -m pytest tests --cov=deserialize --cov-report html --cov-report xml --doctest-modules --junitxml=junit/test-results.xml
     displayName: 'pytest'
 
   - script: |
-     source bin/activate
+     source venv/bin/activate
      python inlinecss.py htmlcov
     displayName: 'Inline CSS'
       
