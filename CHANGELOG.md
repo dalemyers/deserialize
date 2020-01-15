@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.0] - 2020-01-15
+
+### Added
+- Added ability to specify downcasts based on a field value in the data
+
 ## [1.4.1] - 2020-01-08
 
 ### Fixed

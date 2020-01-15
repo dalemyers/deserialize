@@ -12,6 +12,12 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from deserialize.decorators import constructed, _call_constructed
 from deserialize.decorators import default, _get_default, _has_default
+from deserialize.decorators import (
+    downcast_field,
+    _get_downcast_field,
+    downcast_identifier,
+    _get_downcast_identifier,
+)
 from deserialize.decorators import ignore, _should_ignore
 from deserialize.decorators import key, _get_key
 from deserialize.decorators import parser, _get_parser
@@ -21,6 +27,7 @@ from deserialize.exceptions import (
     DeserializeException,
     InvalidBaseTypeException,
     NoDefaultSpecifiedException,
+    UndefinedDowncastException,
     UnhandledFieldException,
 )
 from deserialize.type_checks import *
@@ -295,16 +302,33 @@ def _deserialize_dict(
 
     # It wasn't a straight forward dictionary, so we are in deserialize mode
 
+    class_instance = None
+
+    class_reference_downcast_field = _get_downcast_field(class_reference)
+    if class_reference_downcast_field:
+        downcast_value = data[class_reference_downcast_field]
+        subclasses = class_reference.__subclasses__()
+        for subclass in subclasses:
+            subclass_downcast_identifier = _get_downcast_identifier(subclass, class_reference)
+            if subclass_downcast_identifier == downcast_value:
+                class_instance = class_reference.__new__(subclass)
+                class_reference = subclass
+                break
+        else:
+            raise UndefinedDowncastException(
+                f"Could not find subclass of {class_reference} with downcast identifier '{downcast_value}' for {debug_name}"
+            )
+    else:
+        class_instance = class_reference.__new__(class_reference)
+
+    handled_properties = set()
+
     hints = typing.get_type_hints(class_reference)
 
     if len(hints) == 0:
         raise DeserializeException(
-            f"Could not deserialize {data} into {class_reference} due to lack of type hints"
+            f"Could not deserialize {data} into {class_reference} due to lack of type hints ({debug_name})"
         )
-
-    class_instance = class_reference.__new__(class_reference)
-
-    handled_properties = set()
 
     for attribute_name, attribute_type in hints.items():
         if _should_ignore(class_reference, attribute_name):

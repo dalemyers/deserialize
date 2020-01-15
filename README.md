@@ -202,3 +202,48 @@ print(pc.angle, pc.magnitude)
 
 >>> 3.141592653589793 42.0
 ```
+
+
+### Downcasting
+
+Data often comes in the form of having the type as a field in the data. This can be difficult to parse. For example:
+
+```python
+data = [
+    {
+        "data_type": "foo",
+        "foo_prop": "Hello World",
+    },
+    {
+        "data_type": "bar",
+        "bar_prop": "Goodbye World",
+    }
+]
+```
+
+Since the fields differ between the two, there's no good way of parsing this data. You could use optional fields on some base class, try multiple deserializations until you find the right one, or do the deserialization based on a mapping you build of the `data_type` field. None of those solutions are elegant though, and all have issues if the types are nested. Instead, you can use the `downcast_field` and `downcast_identifier` decorators.
+
+`downcast_field` is specified on a base class and gives the name of the field that contains the type information. `downcast_identifier` takes in a base class and an identifier (which should be one of the possible values of the `downcast_field` from the base class). Internally, when a class with a downcast field is detected, the field will be extacted, and a subclass with a matching identifier will be searched for. If no such class exists, an `UndefinedDowncastException` will be thrown.
+
+Here's an example which would handle the above data:
+
+```python
+@deserialize.downcast_field("data_type")
+class MyBase:
+    type_name: str
+
+
+@deserialize.downcast_identifier(MyBase, "foo")
+class Foo(MyBase):
+    foo_prop: str
+
+
+@deserialize.downcast_identifier(MyBase, "bar")
+class Bar(MyBase):
+    bar_prop: str
+
+
+result = deserialize.deserialize(List[MyBase], data)
+```
+
+Here, `result[0]` will be an instance of `Foo` and `result[1]` will be an instance of `Bar`.

@@ -18,3 +18,10 @@ class NoDefaultSpecifiedException(DeserializeException):
 
     This is required to differentiate from None as a default value.
     """
+
+
+class UndefinedDowncastException(DeserializeException):
+    """The data required a downcast to a specific type, but that type has not been defined.
+
+    This can be an expected scenario though for many cases.
+    """
