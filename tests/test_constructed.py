@@ -25,12 +25,15 @@ class BasicUnconstructed:
     one: int
 
 
-def convert_to_radians(instance):
+def convert_to_radians(instance: "PolarCoordinate") -> None:
+    """Convert the angle on a PolarCoordinate from degrees to radians."""
     instance.angle = instance.angle * math.pi / 180
 
 
 @deserialize.constructed(convert_to_radians)
 class PolarCoordinate:
+    """Represents a polar coordinate."""
+
     angle: float
     magnitude: float
 
