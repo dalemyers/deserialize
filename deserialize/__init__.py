@@ -10,21 +10,13 @@ import functools
 import typing
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from deserialize.decorators import (
-    ignore,
-    _should_ignore,
-    key,
-    _get_key,
-    parser,
-    _get_parser,
-    default,
-    _get_default,
-    _has_default,
-    allow_unhandled,
-    _should_allow_unhandled,
-    constructed,
-    _call_constructed,
-)
+from deserialize.decorators import constructed, _call_constructed
+from deserialize.decorators import default, _get_default, _has_default
+from deserialize.decorators import ignore, _should_ignore
+from deserialize.decorators import key, _get_key
+from deserialize.decorators import parser, _get_parser
+from deserialize.decorators import allow_unhandled, _should_allow_unhandled
+
 from deserialize.exceptions import (
     DeserializeException,
     InvalidBaseTypeException,
