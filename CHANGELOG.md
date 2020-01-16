@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.X] - 2020-?
+## [1.5.1] - 2020-01-16
 
 ### Fixed
 - Some exceptions weren't tracking the debug name
