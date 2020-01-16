@@ -44,11 +44,11 @@ def is_union(type_value):
     return type_value.__origin__ == typing.Union
 
 
-def union_types(type_value):
+def union_types(type_value, debug_name):
     """Return the list of types in a Union."""
     if not is_union(type_value):
         raise deserialize.exceptions.DeserializeException(
-            f"Cannot extract union types from non-union type: {type_value}"
+            f"Cannot extract union types from non-union type: {type_value} for {debug_name}"
         )
 
     return set(type_value.__args__)
@@ -83,14 +83,14 @@ def is_list(type_value):
     return type_value.__origin__ == list
 
 
-def list_content_type(type_value):
+def list_content_type(type_value, debug_name):
     """Strip the List wrapper from a type.
 
     e.g. List[int] -> int
     """
 
     if not is_list(type_value):
-        raise TypeError(f"{type_value} is not a List type")
+        raise TypeError(f"{type_value} is not a List type for {debug_name}")
 
     return type_value.__args__[0]
 
@@ -113,13 +113,13 @@ def is_dict(type_value):
     return type_value.__origin__ == dict
 
 
-def dict_content_types(type_value):
+def dict_content_types(type_value, debug_name):
     """Return the content types for a dictionay.
 
     e.g. Dict[str, int] -> (str, int)
     """
 
     if not is_dict(type_value):
-        raise TypeError(f"{type_value} is not a Dict type")
+        raise TypeError(f"{type_value} is not a Dict type for {debug_name}")
 
     return type_value.__args__[0], type_value.__args__[1]

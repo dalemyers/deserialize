@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.X] - 2020-?
+
+### Fixed
+- Some exceptions weren't tracking the debug name
+
 ## [1.5.0] - 2020-01-15
 
 ### Added

@@ -139,7 +139,7 @@ def _deserialize(
         return finalize(None)
 
     if is_union(class_reference):
-        valid_types = union_types(class_reference)
+        valid_types = union_types(class_reference, debug_name)
         exceptions = []
         for valid_type in valid_types:
             try:
@@ -208,7 +208,9 @@ def _deserialize(
                 f"No value for '{debug_name}'. Expected value of type '{class_reference}'"
             )
 
-        raise DeserializeException(f"Unsupported deserialization type: {class_reference}")
+        raise DeserializeException(
+            f"Unsupported deserialization type: {class_reference} for {debug_name}"
+        )
 
     # Whatever we have left now is either correct, or invalid
     if isinstance(data, class_reference):
@@ -232,12 +234,16 @@ def _deserialize_list(
 ):
 
     if not isinstance(list_data, list):
-        raise DeserializeException(f"Cannot deserialize '{type(list_data)}' as a list.")
+        raise DeserializeException(
+            f"Cannot deserialize '{type(list_data)}' as a list for {debug_name}."
+        )
 
     if not is_list(class_reference):
-        raise DeserializeException(f"Cannot deserialize a list to '{class_reference}'")
+        raise DeserializeException(
+            f"Cannot deserialize a list to '{class_reference}' for {debug_name}"
+        )
 
-    list_content_type_value = list_content_type(class_reference)
+    list_content_type_value = list_content_type(class_reference, debug_name)
 
     output = []
 
@@ -273,7 +279,7 @@ def _deserialize_dict(
         if class_reference is dict:
             # If types of dictionary entries are not defined, do not deserialize
             return data
-        key_type, value_type = dict_content_types(class_reference)
+        key_type, value_type = dict_content_types(class_reference, debug_name)
         result = {}
 
         for dict_key, dict_value in data.items():
@@ -353,7 +359,9 @@ def _deserialize_dict(
                 deserialized_value = _get_default(class_reference, attribute_name)
                 using_default = True
             else:
-                if not is_union(attribute_type) or type(None) not in union_types(attribute_type):
+                if not is_union(attribute_type) or type(None) not in union_types(
+                    attribute_type, debug_name
+                ):
                     raise DeserializeException(
                         f"Unexpected missing value for: {debug_name}.{attribute_name}"
                     )
@@ -380,7 +388,9 @@ def _deserialize_dict(
             key for key in unhandled if not _should_allow_unhandled(class_reference, key)
         ]
         if len(filtered_unhandled) > 0:
-            raise UnhandledFieldException(f"Unhandled field: {list(filtered_unhandled)[0]}")
+            raise UnhandledFieldException(
+                f"Unhandled field: {list(filtered_unhandled)[0]} for {debug_name}"
+            )
 
     _call_constructed(class_reference, class_instance)
 
