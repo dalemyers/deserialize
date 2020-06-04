@@ -318,6 +318,7 @@ def _deserialize_dict(
             raise UndefinedDowncastException(
                 f"Could not find subclass of {class_reference} with downcast identifier '{downcast_value}' for {debug_name}"
             )
+        class_reference = new_reference
 
     class_instance = class_reference.__new__(class_reference)
 
