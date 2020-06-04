@@ -6,7 +6,7 @@ from deserialize.decorators.downcasting import (
     downcast_field,
     _get_downcast_field,
     downcast_identifier,
-    _get_downcast_identifier,
+    _get_downcast_class,
 )
 from deserialize.decorators.ignore import ignore, _should_ignore
 from deserialize.decorators.key import key, _get_key

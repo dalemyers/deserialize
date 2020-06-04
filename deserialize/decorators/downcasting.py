@@ -22,20 +22,20 @@ def downcast_identifier(super_class, identifier):
 
     def store_key_map(class_reference):
         """Store the downcast map."""
-        if not hasattr(class_reference, "__deserialize_downcast_map__"):
-            setattr(class_reference, "__deserialize_downcast_map__", {})
+        if not hasattr(super_class, "__deserialize_downcast_map__"):
+            setattr(super_class, "__deserialize_downcast_map__", {})
 
-        class_reference.__deserialize_downcast_map__[super_class] = identifier
+        super_class.__deserialize_downcast_map__[identifier] = class_reference
 
         return class_reference
 
     return store_key_map
 
 
-def _get_downcast_identifier(class_reference, super_class):
+def _get_downcast_class(super_class, identifier):
     """Get the downcast identifier for the given class and super class, returning None if not set"""
 
-    if not hasattr(class_reference, "__deserialize_downcast_map__"):
+    if not hasattr(super_class, "__deserialize_downcast_map__"):
         return None
 
-    return class_reference.__deserialize_downcast_map__.get(super_class)
+    return super_class.__deserialize_downcast_map__.get(identifier)

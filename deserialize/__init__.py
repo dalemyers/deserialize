@@ -16,7 +16,7 @@ from deserialize.decorators import (
     downcast_field,
     _get_downcast_field,
     downcast_identifier,
-    _get_downcast_identifier,
+    _get_downcast_class,
 )
 from deserialize.decorators import ignore, _should_ignore
 from deserialize.decorators import key, _get_key
@@ -313,19 +313,13 @@ def _deserialize_dict(
     class_reference_downcast_field = _get_downcast_field(class_reference)
     if class_reference_downcast_field:
         downcast_value = data[class_reference_downcast_field]
-        subclasses = class_reference.__subclasses__()
-        for subclass in subclasses:
-            subclass_downcast_identifier = _get_downcast_identifier(subclass, class_reference)
-            if subclass_downcast_identifier == downcast_value:
-                class_instance = class_reference.__new__(subclass)
-                class_reference = subclass
-                break
-        else:
+        new_reference = _get_downcast_class(class_reference, downcast_value)
+        if new_reference is None:
             raise UndefinedDowncastException(
                 f"Could not find subclass of {class_reference} with downcast identifier '{downcast_value}' for {debug_name}"
             )
-    else:
-        class_instance = class_reference.__new__(class_reference)
+
+    class_instance = class_reference.__new__(class_reference)
 
     handled_properties = set()
 
