@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.1] - 2020-06-04
+
+### Fixed
+- Fixed the bug introduced in 1.6.0 which accidentally left the downcasts as the base class
+
 ## [1.6.0] - 2020-06-04
 
 ### Added
