@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.0] - ?
+
+### Added
+- Added support for fallback to dict for unsupported types when downcasting
+
 ## [1.6.1] - 2020-06-04
 
 ### Fixed

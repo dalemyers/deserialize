@@ -39,3 +39,19 @@ def _get_downcast_class(super_class, identifier):
         return None
 
     return super_class.__deserialize_downcast_map__.get(identifier)
+
+
+def allow_downcast_fallback():
+    """A decorator function for setting that downcast fallback to dicts is allowed."""
+
+    def store(class_reference):
+        """Store the allowance flag."""
+        setattr(class_reference, "__deserialize_downcast_allow_fallback__", True)
+        return class_reference
+
+    return store
+
+
+def _allows_downcast_fallback(super_class):
+    """Get the whether downcast can fallback to a dict or not"""
+    return getattr(super_class, "__deserialize_downcast_allow_fallback__", False)

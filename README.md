@@ -247,3 +247,5 @@ result = deserialize.deserialize(List[MyBase], data)
 ```
 
 Here, `result[0]` will be an instance of `Foo` and `result[1]` will be an instance of `Bar`.
+
+If you can't describe all of your types, you can use `@deserialize.allow_downcast_fallback` on your base class and any unknowns will be left as dictionaries.

@@ -124,3 +124,37 @@ class DowncastingTestSuite(unittest.TestCase):
 
         self.assertEqual(foo.type_name, "foo")
         self.assertEqual(bar.type_name, "bar")
+
+    def test_downcasting_fallback(self):
+        """Test that we can deserialize a class with a fallback."""
+
+        @deserialize.downcast_field("type_name")
+        @deserialize.allow_downcast_fallback()
+        class MyBase:
+            """A downcastable base class."""
+
+            type_name: str
+
+        @deserialize.downcast_identifier(MyBase, "foo")
+        class MyFoo(MyBase):
+            """Downcastable class."""
+
+            one: int
+
+        data = [
+            {"type_name": "foo", "one": 1},
+            {"type_name": "bar", "some_data": 42},
+        ]
+
+        results = deserialize.deserialize(List[MyBase], data)
+        foo = results[0]
+        bar = results[1]
+
+        self.assertTrue(isinstance(foo, MyFoo))
+        self.assertTrue(isinstance(bar, dict))
+
+        self.assertEqual(foo.one, 1)
+        self.assertEqual(bar["some_data"], 42)
+
+        self.assertEqual(foo.type_name, "foo")
+        self.assertEqual(bar["type_name"], "bar")

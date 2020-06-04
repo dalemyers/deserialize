@@ -17,6 +17,8 @@ from deserialize.decorators import (
     _get_downcast_field,
     downcast_identifier,
     _get_downcast_class,
+    allow_downcast_fallback,
+    _allows_downcast_fallback,
 )
 from deserialize.decorators import ignore, _should_ignore
 from deserialize.decorators import key, _get_key
@@ -284,7 +286,7 @@ def _deserialize_dict(
 
         for dict_key, dict_value in data.items():
 
-            if not isinstance(dict_key, key_type):
+            if key_type != Any and not isinstance(dict_key, key_type):
                 raise DeserializeException(
                     f"Could not deserialize key {dict_key} to type {key_type} for {debug_name}"
                 )
@@ -315,6 +317,14 @@ def _deserialize_dict(
         downcast_value = data[class_reference_downcast_field]
         new_reference = _get_downcast_class(class_reference, downcast_value)
         if new_reference is None:
+            if _allows_downcast_fallback(class_reference):
+                return _deserialize(
+                    Dict[Any, Any],
+                    data,
+                    debug_name,
+                    throw_on_unhandled=throw_on_unhandled,
+                    raw_storage_mode=raw_storage_mode.child_mode(),
+                )
             raise UndefinedDowncastException(
                 f"Could not find subclass of {class_reference} with downcast identifier '{downcast_value}' for {debug_name}"
             )
