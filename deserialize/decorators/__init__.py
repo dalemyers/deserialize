@@ -13,4 +13,5 @@ from deserialize.decorators.downcasting import (
 from deserialize.decorators.ignore import ignore, _should_ignore
 from deserialize.decorators.key import key, _get_key
 from deserialize.decorators.parser import parser, _get_parser
+from deserialize.decorators.snake import auto_snake, _uses_auto_snake
 from deserialize.decorators.unhandled import allow_unhandled, _should_allow_unhandled

@@ -10,6 +10,7 @@ import functools
 import typing
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from deserialize.conversions import camel_case, pascal_case
 from deserialize.decorators import constructed, _call_constructed
 from deserialize.decorators import default, _get_default, _has_default
 from deserialize.decorators import (
@@ -23,6 +24,7 @@ from deserialize.decorators import (
 from deserialize.decorators import ignore, _should_ignore
 from deserialize.decorators import key, _get_key
 from deserialize.decorators import parser, _get_parser
+from deserialize.decorators import auto_snake, _uses_auto_snake
 from deserialize.decorators import allow_unhandled, _should_allow_unhandled
 
 from deserialize.exceptions import (
@@ -332,7 +334,7 @@ def _deserialize_dict(
 
     class_instance = class_reference.__new__(class_reference)
 
-    handled_properties = set()
+    handled_fields = set()
 
     hints = typing.get_type_hints(class_reference)
 
@@ -348,8 +350,6 @@ def _deserialize_dict(
         property_key = _get_key(class_reference, attribute_name)
         parser_function = _get_parser(class_reference, property_key)
 
-        handled_properties.add(property_key)
-
         if is_classvar(attribute_type):
             if property_key in data:
                 raise DeserializeException(
@@ -357,9 +357,26 @@ def _deserialize_dict(
                 )
             continue
 
+        if _uses_auto_snake(class_reference) and attribute_name.lower() != attribute_name:
+            raise DeserializeException(
+                f"When using auto_snake, all properties must be snake cased. Error on: {debug_name}.{attribute_name}"
+            )
+
         using_default = False
 
-        if property_key not in data:
+        if property_key in data:
+            value = data[property_key]
+            handled_fields.add(property_key)
+            property_value = parser_function(value)
+        elif _uses_auto_snake(class_reference) and camel_case(property_key) in data:
+            value = data[camel_case(property_key)]
+            handled_fields.add(camel_case(property_key))
+            property_value = parser_function(value)
+        elif _uses_auto_snake(class_reference) and pascal_case(property_key) in data:
+            value = data[pascal_case(property_key)]
+            handled_fields.add(pascal_case(property_key))
+            property_value = parser_function(value)
+        else:
             if _has_default(class_reference, attribute_name):
                 deserialized_value = _get_default(class_reference, attribute_name)
                 using_default = True
@@ -371,9 +388,6 @@ def _deserialize_dict(
                         f"Unexpected missing value for: {debug_name}.{attribute_name}"
                     )
                 property_value = parser_function(None)
-        else:
-            value = data[property_key]
-            property_value = parser_function(value)
 
         if not using_default:
             deserialized_value = _deserialize(
@@ -386,7 +400,7 @@ def _deserialize_dict(
 
         setattr(class_instance, attribute_name, deserialized_value)
 
-    unhandled = set(data.keys()) - handled_properties
+    unhandled = set(data.keys()) - handled_fields
 
     if throw_on_unhandled and len(unhandled) > 0:
         filtered_unhandled = [
