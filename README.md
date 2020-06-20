@@ -105,6 +105,28 @@ class MyClass:
 
 This will now assign the data with the key `id` to the field `identifier`. You can have multiple annotations to override multiple keys.
 
+### Auto Snake
+
+Data will often come in with the keys either camelCased or PascalCased. Since Python uses snake_case as standard for members, this means that custom keys are often used to do the conversion. To make this easier, you can add the `auto_snake` decorator and it will do this conversion for you where it can.
+
+```python
+@deserialize.auto_snake()
+class MyClass:
+    some_integer: int
+    some_string: str
+```
+
+Now you can pass this data and it will automatically parse:
+
+```python
+{
+    "SomeInteger": 3,
+    "SomeString": "Hello"
+}
+```
+
+Note that all fields need to be snake cased if you use this decorator.
+
 ### Unhandled Fields
 
 Usually, if you don't specify the field in your definition, but it does exist in the data, you just want to ignore it. Sometimes however, you want to know if there is extra data. In this case, when calling `deserialize(...)` you can set `throw_on_unhandled=True` and it will raise an exception if any fields in the data are unhandled.

@@ -1,5 +1,10 @@
 # Changelog
 
+## [?] - ?
+
+### Added
+- Added support for the `auto_snake` decorator which can automatically convert data keys from camelCase and PascalCase to snake_case.
+
 ## [1.7.0] - 2020-06-04
 
 ### Added
