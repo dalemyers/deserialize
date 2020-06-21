@@ -4,7 +4,8 @@ import copy
 import os
 import sys
 from typing import List
-import unittest
+
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -48,113 +49,115 @@ class Baz(DowncastableBase):
     three: int
 
 
-class DowncastingTestSuite(unittest.TestCase):
-    """Deserialization downcasting test cases."""
+def test_downcasting_foo():
+    """Test that we can deserialize a simple class."""
 
-    def test_downcasting_foo(self):
-        """Test that we can deserialize a simple class."""
+    data = {"type_name": "foo", "one": 1}
 
-        data = {"type_name": "foo", "one": 1}
+    result = deserialize.deserialize(DowncastableBase, data)
+    assert isinstance(result, Foo)
+    assert result.one == 1
+    assert result.type_name == "foo"
 
-        result = deserialize.deserialize(DowncastableBase, data)
-        self.assertTrue(isinstance(result, Foo))
-        self.assertEqual(result.one, 1)
-        self.assertEqual(result.type_name, "foo")
 
-    def test_downcasting_bar(self):
-        """Test that we can deserialize a class with multiple bases."""
+def test_downcasting_bar():
+    """Test that we can deserialize a class with multiple bases."""
 
-        data = {"type_name": "bar", "two": 2, "hello": "world"}
+    data = {"type_name": "bar", "two": 2, "hello": "world"}
 
-        result = deserialize.deserialize(DowncastableBase, data)
-        self.assertTrue(isinstance(result, Bar))
-        self.assertEqual(result.two, 2)
-        self.assertEqual(result.type_name, "bar")
+    result = deserialize.deserialize(DowncastableBase, data)
+    assert isinstance(result, Bar)
+    assert result.two == 2
+    assert result.type_name == "bar"
 
-    def test_downcasting_baz(self):
-        """Test that non-declared subclasses don't deserialize."""
 
-        data = {"type_name": "baz", "three": 3}
+def test_downcasting_baz():
+    """Test that non-declared subclasses don't deserialize."""
 
-        with self.assertRaises(deserialize.UndefinedDowncastException):
-            _ = deserialize.deserialize(DowncastableBase, data)
+    data = {"type_name": "baz", "three": 3}
 
-    def test_downcasting_multi(self):
-        """Test that we can deserialize a simple class."""
+    with pytest.raises(deserialize.UndefinedDowncastException):
+        _ = deserialize.deserialize(DowncastableBase, data)
 
-        casts = [("foo", Foo), ("bar", Bar), ("baz", Baz)]
-        data = {"one": 1, "two": 2, "three": 3, "hello": "world"}
 
-        for identifier, subclass in casts:
-            specific_data = copy.deepcopy(data)
-            specific_data["type_name"] = identifier
+def test_downcasting_multi():
+    """Test that we can deserialize a simple class."""
 
-            if identifier == "baz":
-                with self.assertRaises(deserialize.UndefinedDowncastException):
-                    _ = deserialize.deserialize(DowncastableBase, specific_data)
-                continue
+    casts = [("foo", Foo), ("bar", Bar), ("baz", Baz)]
+    data = {"one": 1, "two": 2, "three": 3, "hello": "world"}
 
-            result = deserialize.deserialize(DowncastableBase, specific_data)
+    for identifier, subclass in casts:
+        specific_data = copy.deepcopy(data)
+        specific_data["type_name"] = identifier
 
-            self.assertTrue(isinstance(result, subclass))
-            self.assertEqual(result.type_name, identifier)
+        if identifier == "baz":
+            with pytest.raises(deserialize.UndefinedDowncastException):
+                _ = deserialize.deserialize(DowncastableBase, specific_data)
+            continue
 
-            if isinstance(result, Foo):
-                self.assertEqual(result.one, 1)
-            elif isinstance(result, Bar):
-                self.assertEqual(result.two, 2)
-                self.assertEqual(result.hello, "world")
-            else:
-                raise Exception(f"Unexpected type: {type(result)}")
+        result = deserialize.deserialize(DowncastableBase, specific_data)
 
-    def test_downcasting_nested(self):
-        """Test that we can deserialize a nested downcast classes."""
+        assert isinstance(result, subclass)
+        assert result.type_name == identifier
 
-        data = [{"type_name": "foo", "one": 1}, {"type_name": "bar", "two": 2, "hello": "world"}]
+        if isinstance(result, Foo):
+            assert result.one == 1
+        elif isinstance(result, Bar):
+            assert result.two == 2
+            assert result.hello == "world"
+        else:
+            raise Exception(f"Unexpected type: {type(result)}")
 
-        results = deserialize.deserialize(List[DowncastableBase], data)
-        foo = results[0]
-        bar = results[1]
 
-        self.assertTrue(isinstance(foo, Foo))
-        self.assertTrue(isinstance(bar, Bar))
+def test_downcasting_nested():
+    """Test that we can deserialize a nested downcast classes."""
 
-        self.assertEqual(foo.one, 1)
-        self.assertEqual(bar.two, 2)
+    data = [{"type_name": "foo", "one": 1}, {"type_name": "bar", "two": 2, "hello": "world"}]
 
-        self.assertEqual(foo.type_name, "foo")
-        self.assertEqual(bar.type_name, "bar")
+    results = deserialize.deserialize(List[DowncastableBase], data)
+    foo = results[0]
+    bar = results[1]
 
-    def test_downcasting_fallback(self):
-        """Test that we can deserialize a class with a fallback."""
+    assert isinstance(foo, Foo)
+    assert isinstance(bar, Bar)
 
-        @deserialize.downcast_field("type_name")
-        @deserialize.allow_downcast_fallback()
-        class MyBase:
-            """A downcastable base class."""
+    assert foo.one == 1
+    assert bar.two == 2
 
-            type_name: str
+    assert foo.type_name == "foo"
+    assert bar.type_name == "bar"
 
-        @deserialize.downcast_identifier(MyBase, "foo")
-        class MyFoo(MyBase):
-            """Downcastable class."""
 
-            one: int
+def test_downcasting_fallback():
+    """Test that we can deserialize a class with a fallback."""
 
-        data = [
-            {"type_name": "foo", "one": 1},
-            {"type_name": "bar", "some_data": 42},
-        ]
+    @deserialize.downcast_field("type_name")
+    @deserialize.allow_downcast_fallback()
+    class MyBase:
+        """A downcastable base class."""
 
-        results = deserialize.deserialize(List[MyBase], data)
-        foo = results[0]
-        bar = results[1]
+        type_name: str
 
-        self.assertTrue(isinstance(foo, MyFoo))
-        self.assertTrue(isinstance(bar, dict))
+    @deserialize.downcast_identifier(MyBase, "foo")
+    class MyFoo(MyBase):
+        """Downcastable class."""
 
-        self.assertEqual(foo.one, 1)
-        self.assertEqual(bar["some_data"], 42)
+        one: int
 
-        self.assertEqual(foo.type_name, "foo")
-        self.assertEqual(bar["type_name"], "bar")
+    data = [
+        {"type_name": "foo", "one": 1},
+        {"type_name": "bar", "some_data": 42},
+    ]
+
+    results = deserialize.deserialize(List[MyBase], data)
+    foo = results[0]
+    bar = results[1]
+
+    assert isinstance(foo, MyFoo)
+    assert isinstance(bar, dict)
+
+    assert foo.one == 1
+    assert bar["some_data"] == 42
+
+    assert foo.type_name == "foo"
+    assert bar["type_name"] == "bar"

@@ -2,7 +2,6 @@
 
 import os
 import sys
-import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -27,17 +26,14 @@ class SecondaryItem:
     identifier: int
 
 
-class DeserializationKeysTestSuite(unittest.TestCase):
-    """Deserialization keyse test cases."""
+def test_keys():
+    """Test that root lists deserialize correctly."""
 
-    def test_keys(self):
-        """Test that root lists deserialize correctly."""
+    data = {"one": 1, "two": "two"}
 
-        data = {"one": 1, "two": "two"}
+    instance = deserialize.deserialize(SampleItem, data)
+    assert data["one"] == instance.field_1
+    assert data["two"] == instance.field_2
 
-        instance = deserialize.deserialize(SampleItem, data)
-        self.assertEqual(data["one"], instance.field_1)
-        self.assertEqual(data["two"], instance.field_2)
-
-        instance = deserialize.deserialize(SecondaryItem, {"id": 123})
-        self.assertEqual(instance.identifier, 123)
+    instance = deserialize.deserialize(SecondaryItem, {"id": 123})
+    assert instance.identifier == 123

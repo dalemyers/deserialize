@@ -3,7 +3,8 @@
 import os
 import sys
 from typing import Optional, Union
-import unittest
+
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -26,60 +27,58 @@ class SomeUnionClass:
     three: Union[int, Optional[str]]
 
 
-class UnionTestSuite(unittest.TestCase):
-    """Deserialization of union test cases."""
+def test_union_simple():
+    """Test that items with a simple union property deserializes."""
+    valid_test_cases = [
+        {"one": 1},
+        {"one": "1"},
+    ]
 
-    def test_union_simple(self):
-        """Test that items with a simple union property deserializes."""
-        valid_test_cases = [
-            {"one": 1},
-            {"one": "1"},
-        ]
+    invalid_test_cases = [
+        {"one": 3.1415},
+        {"one": None},
+        {"one": BasicUnionClass()},
+    ]
 
-        invalid_test_cases = [
-            {"one": 3.1415},
-            {"one": None},
-            {"one": BasicUnionClass()},
-        ]
+    for test_case in valid_test_cases:
+        instance = deserialize.deserialize(BasicUnionClass, test_case)
+        assert test_case["one"] == instance.one
 
-        for test_case in valid_test_cases:
-            instance = deserialize.deserialize(BasicUnionClass, test_case)
-            self.assertEqual(test_case["one"], instance.one)
+    for test_case in invalid_test_cases:
+        with pytest.raises(deserialize.DeserializeException):
+            _ = deserialize.deserialize(BasicUnionClass, test_case)
 
-        for test_case in invalid_test_cases:
-            with self.assertRaises(deserialize.DeserializeException):
-                _ = deserialize.deserialize(BasicUnionClass, test_case)
 
-    def test_union(self):
-        """Test that items with union properties deserializes."""
+def test_union():
+    """Test that items with union properties deserializes."""
 
-        valid_test_cases = [
-            {"one": 1, "two": 2, "three": 3},
-            {"one": 1, "two": "2", "three": 3},
-            {"one": "1", "two": 2, "three": 3},
-            {"one": "1", "two": "2", "three": 3},
-            {"one": 1, "two": 2, "three": None},
-            {"one": 1, "two": "2", "three": None},
-            {"one": "1", "two": 2, "three": None},
-            {"one": "1", "two": "2", "three": None},
-            {"one": 1, "two": 2, "three": "3"},
-            {"one": 1, "two": "2", "three": "3"},
-            {"one": "1", "two": 2, "three": "3"},
-            {"one": "1", "two": "2", "three": "3"},
-        ]
+    valid_test_cases = [
+        {"one": 1, "two": 2, "three": 3},
+        {"one": 1, "two": "2", "three": 3},
+        {"one": "1", "two": 2, "three": 3},
+        {"one": "1", "two": "2", "three": 3},
+        {"one": 1, "two": 2, "three": None},
+        {"one": 1, "two": "2", "three": None},
+        {"one": "1", "two": 2, "three": None},
+        {"one": "1", "two": "2", "three": None},
+        {"one": 1, "two": 2, "three": "3"},
+        {"one": 1, "two": "2", "three": "3"},
+        {"one": "1", "two": 2, "three": "3"},
+        {"one": "1", "two": "2", "three": "3"},
+    ]
 
-        invalid_test_cases = [
-            {"one": None, "two": 2, "three": 3},
-            {"one": 1, "two": None, "three": 3},
-            {"one": 1, "two": 2, "three": BasicUnionClass()},
-        ]
+    invalid_test_cases = [
+        {"one": None, "two": 2, "three": 3},
+        {"one": 1, "two": None, "three": 3},
+        {"one": 1, "two": 2, "three": BasicUnionClass()},
+    ]
 
-        for test_case in valid_test_cases:
-            instance = deserialize.deserialize(SomeUnionClass, test_case)
-            self.assertEqual(test_case["one"], instance.one)
-            self.assertEqual(test_case["two"], instance.two)
-            self.assertEqual(test_case["three"], instance.three)
+    for test_case in valid_test_cases:
+        instance = deserialize.deserialize(SomeUnionClass, test_case)
+        assert test_case["one"] == instance.one
+        assert test_case["two"] == instance.two
+        assert test_case["three"] == instance.three
 
-        for test_case in invalid_test_cases:
-            with self.assertRaises(deserialize.DeserializeException):
-                _ = deserialize.deserialize(SomeUnionClass, test_case)
+    for test_case in invalid_test_cases:
+        with pytest.raises(deserialize.DeserializeException):
+            _ = deserialize.deserialize(SomeUnionClass, test_case)
