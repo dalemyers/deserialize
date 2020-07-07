@@ -1,3 +1,5 @@
+![Code scanning - action](https://github.com/dalemyers/deserialize/workflows/Code%20scanning%20-%20action/badge.svg)
+
 # deserialize
 
 A library to make deserialization easy. To get started, just run `pip install deserialize`
