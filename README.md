@@ -1,4 +1,4 @@
-![Code scanning - action](https://github.com/dalemyers/deserialize/workflows/Code%20scanning%20-%20action/badge.svg) [![PyPI version](https://badge.fury.io/py/deserialize.svg)](https://badge.fury.io/py/deserialize)
+![Code scanning - action](https://github.com/dalemyers/deserialize/workflows/Code%20scanning%20-%20action/badge.svg) [![PyPI version](https://badge.fury.io/py/deserialize.svg)](https://badge.fury.io/py/deserialize) ![Azure DevOps builds](https://img.shields.io/azure-devops/build/dalemyers/Github/3)
 
 # deserialize
 
