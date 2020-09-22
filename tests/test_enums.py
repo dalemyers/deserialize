@@ -48,7 +48,6 @@ def test_enums_simple():
 
     invalid_test_cases = [
         {"my_value": 1, "my_enum": None, "my_optional_enum": 1},
-        {"my_value": 2, "my_enum": "two", "my_optional_enum": None},
         {"my_value": 3, "my_enum": 3, "my_optional_enum": "Three"},
     ]
 
@@ -70,3 +69,20 @@ def test_enums_simple():
     for test_case in invalid_test_cases:
         with pytest.raises(deserialize.DeserializeException):
             _ = deserialize.deserialize(SomeClass, test_case)
+
+
+def test_enums_deserialized_by_name():
+    """Test that items with an enum property deserializes."""
+    valid_test_cases = [
+        ({"my_value": 1, "my_enum": "one", "my_optional_enum": 1},
+         {'my_value': 1, 'my_enum': SomeStringEnum.one, 'my_optional_enum': 1})
+    ]
+
+    for test_case, expected in valid_test_cases:
+        instance = deserialize.deserialize(SomeClass, test_case)
+
+        assert expected["my_value"] == instance.my_value
+
+        assert expected['my_enum'] == instance.my_enum
+
+        assert expected["my_optional_enum"] == instance.my_optional_enum.value

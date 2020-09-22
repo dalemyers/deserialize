@@ -197,6 +197,9 @@ def _deserialize(
             return finalize(class_reference(data))
         # pylint:disable=bare-except
         except:
+            enum_by_name = getattr(class_reference, str(data), None)
+            if enum_by_name:
+                return finalize(enum_by_name)
             # pylint:enable=bare-except
             # This will be handled at the end
             pass
