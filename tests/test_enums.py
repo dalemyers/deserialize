@@ -3,7 +3,7 @@
 import enum
 import os
 import sys
-from typing import Optional
+from typing import List, Optional
 
 import pytest
 
@@ -70,3 +70,27 @@ def test_enums_simple():
     for test_case in invalid_test_cases:
         with pytest.raises(deserialize.DeserializeException):
             _ = deserialize.deserialize(SomeClass, test_case)
+
+
+def test_enums_order():
+    """Test that enum ordering is consistent and expected."""
+
+    class OrderTest(enum.Enum):
+        """Order enum test class."""
+
+        one = "one"
+        two = "one"
+        three = "three"
+
+    test_cases = [[["one", "one", "three"], [OrderTest.one, OrderTest.one, OrderTest.three]]]
+
+    for test_case in test_cases:
+
+        data = test_case[0]
+        expected_result = test_case[1]
+
+        result = deserialize.deserialize(List[OrderTest], data)
+
+        assert len(result) == len(data) == len(expected_result)
+        assert result == expected_result
+
