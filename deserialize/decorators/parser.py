@@ -1,30 +1,49 @@
 """Decorators used for adding functionality to the library."""
 
-
-def parser(key_name, parser_function):
-    """A decorator function for mapping parsers to key names."""
-
-    def store_parser_map(class_reference):
-        """Store the parser map."""
-
-        if not hasattr(class_reference, "__deserialize_parser_map__"):
-            setattr(class_reference, "__deserialize_parser_map__", {})
-
-        class_reference.__deserialize_parser_map__[key_name] = parser_function
-
-        return class_reference
-
-    return store_parser_map
+import inspect
 
 
-def _get_parser(class_reference, key_name):
-    """Get the parser for the given class and key name."""
+def _generate_key(class_reference):
+    """Generate a key for lookups."""
+    return str(class_reference)
 
-    def identity_parser(value):
-        """This parser does nothing. It's simply used as the default."""
-        return value
 
-    if not hasattr(class_reference, "__deserialize_parser_map__"):
-        return identity_parser
+def set_property(class_reference, property_name, key_name, property_value):
+    """A apply a property to a class."""
 
-    return class_reference.__deserialize_parser_map__.get(key_name, identity_parser)
+    if not hasattr(class_reference, property_name):
+        setattr(class_reference, property_name, {})
+
+    class_key = _generate_key(class_reference)
+
+    subclass_map = getattr(class_reference, property_name, {}).get(class_key)
+
+    if subclass_map is None:
+        getattr(class_reference, property_name)[class_key] = {}
+
+    getattr(class_reference, property_name)[class_key][key_name] = property_value
+
+
+def _get_property(class_reference, property_name, key_name, sentinel_value):
+    """Get the property for the given class, property and key name."""
+
+    if not hasattr(class_reference, property_name):
+        return sentinel_value
+
+    class_key = class_key = _generate_key(class_reference)
+    subclass_map = getattr(class_reference, property_name, {}).get(class_key)
+
+    if subclass_map:
+        value = subclass_map.get(key_name, sentinel_value)
+        if value != sentinel_value:
+            return value
+
+    for superclass in inspect.getmro(class_reference):
+        if superclass == class_reference:
+            continue
+
+        value = _get_property(superclass, property_name, key_name)
+        if value != sentinel_value:
+            return value
+
+    return sentinel_value
