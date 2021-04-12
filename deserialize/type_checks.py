@@ -9,10 +9,7 @@ import deserialize.exceptions
 
 
 def is_typing_type(class_reference):
-    """Check if the supplied type is one defined by the `typing` module.
-
-    This behaves differently on 3.6 and 3.7+
-    """
+    """Check if the supplied type is one defined by the `typing` module."""
 
     if sys.version_info < (3, 7):
         # Union/Optional is a special case since it doesn't inherit.
@@ -32,7 +29,10 @@ def is_typing_type(class_reference):
         return class_reference.__module__ == "typing"
         # pylint: enable=no-member
 
-    return isinstance(class_reference, typing._GenericAlias)
+    if sys.version_info < (3, 8):
+        return isinstance(class_reference, typing._GenericAlias)
+
+    return typing.get_origin(class_reference) != None
 
 
 def is_union(type_value):
@@ -41,7 +41,10 @@ def is_union(type_value):
     if not is_typing_type(type_value):
         return False
 
-    return type_value.__origin__ == typing.Union
+    if sys.version_info < (3, 8):
+        return type_value.__origin__ == typing.Union
+
+    return typing.get_origin(type_value) == typing.Union
 
 
 def union_types(type_value, debug_name):
@@ -51,7 +54,10 @@ def union_types(type_value, debug_name):
             f"Cannot extract union types from non-union type: {type_value} for {debug_name}"
         )
 
-    return set(type_value.__args__)
+    if sys.version_info < (3, 8):
+        return set(type_value.__args__)
+
+    return set(typing.get_args(type_value))
 
 
 def is_classvar(type_value):
@@ -65,7 +71,10 @@ def is_classvar(type_value):
         return type(type_value) == type(typing.ClassVar)
         # pylint: enable=unidiomatic-typecheck
 
-    return type_value.__origin__ == typing.ClassVar
+    if sys.version_info < (3, 8):
+        return type_value.__origin__ == typing.ClassVar
+
+    return typing.get_origin(type_value) == typing.ClassVar
 
 
 def is_list(type_value):
@@ -80,7 +89,10 @@ def is_list(type_value):
     if sys.version_info < (3, 7):
         return type_value.__origin__ == typing.List
 
-    return type_value.__origin__ == list
+    if sys.version_info < (3, 8):
+        return type_value.__origin__ == list
+
+    return typing.get_origin(type_value) == list
 
 
 def list_content_type(type_value, debug_name):
@@ -92,7 +104,10 @@ def list_content_type(type_value, debug_name):
     if not is_list(type_value):
         raise TypeError(f"{type_value} is not a List type for {debug_name}")
 
-    return type_value.__args__[0]
+    if sys.version_info < (3, 8):
+        return type_value.__args__[0]
+
+    return typing.get_args(type_value)[0]
 
 
 def is_dict(type_value):
@@ -110,7 +125,10 @@ def is_dict(type_value):
     if sys.version_info < (3, 7):
         return type_value.__origin__ == typing.Dict
 
-    return type_value.__origin__ == dict
+    if sys.version_info < (3, 8):
+        return type_value.__origin__ == dict
+
+    return typing.get_origin(type_value) == dict
 
 
 def dict_content_types(type_value, debug_name):
@@ -122,4 +140,7 @@ def dict_content_types(type_value, debug_name):
     if not is_dict(type_value):
         raise TypeError(f"{type_value} is not a Dict type for {debug_name}")
 
-    return type_value.__args__[0], type_value.__args__[1]
+    if sys.version_info < (3, 8):
+        return type_value.__args__[0], type_value.__args__[1]
+
+    return typing.get_args(type_value)
