@@ -93,4 +93,3 @@ def test_enums_order():
 
         assert len(result) == len(data) == len(expected_result)
         assert result == expected_result
-

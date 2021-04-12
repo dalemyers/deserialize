@@ -24,7 +24,7 @@ def set_property(class_reference, property_name, key_name, property_value):
     getattr(class_reference, property_name)[class_key][key_name] = property_value
 
 
-def get_property(class_reference, property_name, key_name, sentinel_value):
+def get_property(class_reference, property_name, key_name, sentinel_value=None):
     """Get the property for the given class, property and key name."""
 
     if not hasattr(class_reference, property_name):
