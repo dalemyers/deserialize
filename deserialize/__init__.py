@@ -170,6 +170,15 @@ def _deserialize(
             exception_message += sub_message
         raise DeserializeException(exception_message)
 
+    if not is_typing_type(class_reference) and issubclass(class_reference, enum.Enum):
+        try:
+            return finalize(class_reference(data))
+        # pylint:disable=bare-except
+        except:
+            # pylint:enable=bare-except
+            # This will be handled at the end
+            pass
+
     if isinstance(data, dict):
         return finalize(
             _deserialize_dict(
@@ -191,15 +200,6 @@ def _deserialize(
                 raw_storage_mode=raw_storage_mode,
             )
         )
-
-    if not is_typing_type(class_reference) and issubclass(class_reference, enum.Enum):
-        try:
-            return finalize(class_reference(data))
-        # pylint:disable=bare-except
-        except:
-            # pylint:enable=bare-except
-            # This will be handled at the end
-            pass
 
     # If we still have a type from the typing module, we don't know how to
     # handle it
