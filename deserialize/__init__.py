@@ -175,9 +175,9 @@ def _deserialize(
             return finalize(class_reference(data))
         # pylint:disable=bare-except
         except:
-            # pylint:enable=bare-except
-            # This will be handled at the end
-            pass
+            raise DeserializeException(
+                f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'"
+            )
 
     if isinstance(data, dict):
         return finalize(
