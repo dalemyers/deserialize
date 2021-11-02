@@ -319,7 +319,10 @@ def _deserialize_dict(
     if class_reference_downcast_field:
         downcast_value = data.get(class_reference_downcast_field, _get_downcast_field_default_value(class_reference))
         if downcast_value is None:
-            raise KeyError(f"Couldn not find downcast identifier for {debug_name}.")
+            if not _has_default(class_reference, class_reference_downcast_field):
+                raise KeyError(f"Couldn not find downcast identifier for {debug_name}.")
+            downcast_value = _get_default(class_reference, class_reference_downcast_field)
+
         new_reference = _get_downcast_class(class_reference, downcast_value)
         if new_reference is None:
             if _allows_downcast_fallback(class_reference):
