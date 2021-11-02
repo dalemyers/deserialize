@@ -16,6 +16,7 @@ from deserialize.decorators import default, _get_default, _has_default
 from deserialize.decorators import (
     downcast_field,
     _get_downcast_field,
+    _get_downcast_field_default_value,
     downcast_identifier,
     _get_downcast_class,
     allow_downcast_fallback,
@@ -316,7 +317,9 @@ def _deserialize_dict(
 
     class_reference_downcast_field = _get_downcast_field(class_reference)
     if class_reference_downcast_field:
-        downcast_value = data[class_reference_downcast_field]
+        downcast_value = data.get(class_reference_downcast_field, _get_downcast_field_default_value(class_reference))
+        if downcast_value is None:
+            raise KeyError(f"Couldn not find downcast identifier for {debug_name}.")
         new_reference = _get_downcast_class(class_reference, downcast_value)
         if new_reference is None:
             if _allows_downcast_fallback(class_reference):

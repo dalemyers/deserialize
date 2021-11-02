@@ -1,12 +1,13 @@
 """Decorators used for adding functionality to the library."""
 
 
-def downcast_field(property_name):
+def downcast_field(property_name, default_value = None):
     """A decorator function for handling downcasting."""
 
     def store_downcast_field_value(class_reference):
         """Store the key map."""
         setattr(class_reference, "__deserialize_downcast_field__", property_name)
+        setattr(class_reference, "__deserialize_downcast_field_default_value__", default_value)
         return class_reference
 
     return store_downcast_field_value
@@ -16,6 +17,9 @@ def _get_downcast_field(class_reference):
     """Get the downcast field name if set, None otherwise."""
     return getattr(class_reference, "__deserialize_downcast_field__", None)
 
+def _get_downcast_field_default_value(class_reference):
+    """Get the defualt value used for downcast field, None by default."""
+    return getattr(class_reference, "__deserialize_downcast_field_default_value__", None)
 
 def downcast_identifier(super_class, identifier):
     """A decorator function for storing downcast identifiers."""

@@ -5,6 +5,7 @@ from deserialize.decorators.default import default, _get_default, _has_default
 from deserialize.decorators.downcasting import (
     downcast_field,
     _get_downcast_field,
+    _get_downcast_field_default_value,
     downcast_identifier,
     _get_downcast_class,
     allow_downcast_fallback,
