@@ -10,6 +10,8 @@ from deserialize.decorators.downcasting import (
     _get_downcast_class,
     allow_downcast_fallback,
     _allows_downcast_fallback,
+    downcast_proxy,
+    _get_downcast_proxy
 )
 from deserialize.decorators.ignore import ignore, _should_ignore
 from deserialize.decorators.key import key, _get_key

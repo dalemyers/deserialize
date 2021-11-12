@@ -59,3 +59,23 @@ def allow_downcast_fallback():
 def _allows_downcast_fallback(super_class):
     """Get the whether downcast can fallback to a dict or not"""
     return getattr(super_class, "__deserialize_downcast_allow_fallback__", False)
+
+
+def downcast_proxy(source_property, target_property):
+    """A decorator function for settin up a downcasting proxy, source_property will be used as downcast_field for target_property."""
+    
+    def store_downcast_proxy(class_reference):
+        """Create downcast proxy mapping and add the properties mapping to it."""
+        if not hasattr(class_reference, "__deserialize_downcast_proxy_map__"):
+            setattr(class_reference, "__deserialize_downcast_proxy_map__", {})
+        
+        class_reference.__deserialize_downcast_proxy_map__[target_property] = source_property
+    
+    return store_downcast_proxy
+
+def _get_downcast_proxy(class_reference, property):
+    """Get downcast proxy for property in class_reference, None if not set."""
+    if not hasattr(class_reference, "__deserialize_downcast_rpoxy_map__"):
+        return None
+    
+    return class_reference.__deserialize_downcast_proxy_map__.get(property, None)

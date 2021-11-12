@@ -21,6 +21,8 @@ from deserialize.decorators import (
     _get_downcast_class,
     allow_downcast_fallback,
     _allows_downcast_fallback,
+    downcast_proxy,
+    _get_downcast_proxy
 )
 from deserialize.decorators import ignore, _should_ignore
 from deserialize.decorators import key, _get_key
@@ -104,7 +106,7 @@ def deserialize(class_reference, data, *, throw_on_unhandled: bool = False, raw_
 
 # pylint:disable=too-many-return-statements
 def _deserialize(
-    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode
+    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode,  downcast_field_identifier = None
 ):
     """Deserialize data to a Python object, but allow base types"""
 
@@ -155,6 +157,7 @@ def _deserialize(
                         debug_name,
                         throw_on_unhandled=throw_on_unhandled,
                         raw_storage_mode=raw_storage_mode.child_mode(),
+                        downcast_field_identifier=downcast_field_identifier
                     )
                 )
             except DeserializeException as ex:
@@ -236,6 +239,7 @@ def _deserialize_list(
     *,
     throw_on_unhandled: bool,
     raw_storage_mode: RawStorageMode,
+    downcast_field_identifier=None
 ):
 
     if not isinstance(list_data, list):
@@ -259,6 +263,7 @@ def _deserialize_list(
             f"{debug_name}[{index}]",
             throw_on_unhandled=throw_on_unhandled,
             raw_storage_mode=raw_storage_mode.child_mode(),
+            downcast_field_identifier=downcast_field_identifier
         )
         output.append(deserialized)
 
@@ -266,7 +271,7 @@ def _deserialize_list(
 
 
 def _deserialize_dict(
-    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode
+    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode, downcast_field_identifier=None
 ):
     """Deserialize a dictionary to a Python object."""
 
@@ -300,6 +305,7 @@ def _deserialize_dict(
                 f"{debug_name}.{dict_key}",
                 throw_on_unhandled=throw_on_unhandled,
                 raw_storage_mode=raw_storage_mode.child_mode(),
+                downcast_field_identifier=downcast_field_identifier
             )
 
             remaining_properties.remove(dict_key)
@@ -316,11 +322,17 @@ def _deserialize_dict(
     class_instance = None
 
     class_reference_downcast_field = _get_downcast_field(class_reference)
-    if class_reference_downcast_field:
-        downcast_value = data.get(class_reference_downcast_field, _get_downcast_field_default_value(class_reference))
+    if class_reference_downcast_field or downcast_field_identifier:
+        if class_reference_downcast_field and downcast_field_identifier:
+            raise DeserializeException(f"{debug_name} cannot use both: 'downcast field' and 'downcast proxy'")
+        if class_reference_downcast_field:
+            downcast_value = data.get(class_reference_downcast_field, _get_downcast_field_default_value(class_reference))
+        else:
+            downcast_value = downcast_field_identifier
+        
         if downcast_value is None:
             if not _has_default(class_reference, class_reference_downcast_field):
-                raise KeyError(f"Couldn not find downcast identifier for {debug_name}.")
+                raise KeyError(f"Could not find downcast identifier for {debug_name}.")
             downcast_value = _get_default(class_reference, class_reference_downcast_field)
 
         new_reference = _get_downcast_class(class_reference, downcast_value)
@@ -394,7 +406,7 @@ def _deserialize_dict(
                         f"Unexpected missing value for: {debug_name}.{attribute_name}"
                     )
                 property_value = parser_function(None)
-
+        
         if not using_default:
             deserialized_value = _deserialize(
                 attribute_type,
@@ -402,6 +414,7 @@ def _deserialize_dict(
                 f"{debug_name}.{attribute_name}",
                 throw_on_unhandled=throw_on_unhandled,
                 raw_storage_mode=raw_storage_mode.child_mode(),
+                downcast_field_identifier=_get_downcast_proxy(class_reference, attribute_name)
             )
 
         setattr(class_instance, attribute_name, deserialized_value)
