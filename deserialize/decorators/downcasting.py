@@ -75,7 +75,7 @@ def downcast_proxy(source_property, target_property):
 
 def _get_downcast_proxy(class_reference, property):
     """Get downcast proxy for property in class_reference, None if not set."""
-    if not hasattr(class_reference, "__deserialize_downcast_rpoxy_map__"):
+    if not hasattr(class_reference, "__deserialize_downcast_proxy_map__"):
         return None
     
     return class_reference.__deserialize_downcast_proxy_map__.get(property, None)
