@@ -196,6 +196,7 @@ def _deserialize(
                 debug_name,
                 throw_on_unhandled=throw_on_unhandled,
                 raw_storage_mode=raw_storage_mode,
+                downcast_field_identifier=downcast_field_identifier
             )
         )
 
@@ -276,7 +277,7 @@ def _deserialize_list(
 
 
 def _deserialize_dict(
-    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode, downcast_field_identifier=None
+    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode, downcast_field_identifier
 ):
     """Deserialize a dictionary to a Python object."""
 
