@@ -39,6 +39,12 @@ from deserialize.exceptions import (
 )
 from deserialize.type_checks import *
 
+from logging import getLogger
+import logging
+
+logging.basicConfig(level="DEBUG")
+logger = getLogger(__name__)
+
 
 class RawStorageMode(enum.Enum):
     """The storage mode for the raw data on each object.
@@ -348,6 +354,7 @@ def _deserialize_dict(
             raise UndefinedDowncastException(
                 f"Could not find subclass of {class_reference} with downcast identifier '{downcast_value}' for {debug_name}"
             )
+        logger.debug(f"Downcasting: {class_reference} to {new_reference}")
         class_reference = new_reference
 
     class_instance = class_reference.__new__(class_reference)
@@ -406,6 +413,8 @@ def _deserialize_dict(
                         f"Unexpected missing value for: {debug_name}.{attribute_name}"
                     )
                 property_value = parser_function(None)
+        
+        logger.debug(f"Downcast proxy for {debug_name}.{attribute_name} : {data.get(_get_downcast_proxy(class_reference, attribute_name), None)}")
         
         if not using_default:
             deserialized_value = _deserialize(
