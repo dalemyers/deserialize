@@ -429,7 +429,9 @@ def _deserialize_dict(
                 downcast_field_identifier=data.get(_get_downcast_proxy(class_reference, attribute_name), None)
             )
 
+        logger.debug(f"Deserialized value for {debug_name}.{attribute_name}: {deserialized_value}")
         setattr(class_instance, attribute_name, deserialized_value)
+        logger.debug(f"{debug_name} instance after adding {attribute_name}: {class_instance}")
 
     unhandled = set(data.keys()) - handled_fields
 
