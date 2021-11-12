@@ -62,7 +62,7 @@ def _allows_downcast_fallback(super_class):
 
 
 def downcast_proxy(source_property, target_property):
-    """A decorator function for settin up a downcasting proxy, source_property will be used as downcast_field for target_property."""
+    """A decorator function for setting up a downcasting proxy, source_property will be used as downcast_field for target_property."""
     
     def store_downcast_proxy(class_reference):
         """Create downcast proxy mapping and add the properties mapping to it."""

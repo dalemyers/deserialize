@@ -414,7 +414,7 @@ def _deserialize_dict(
                 f"{debug_name}.{attribute_name}",
                 throw_on_unhandled=throw_on_unhandled,
                 raw_storage_mode=raw_storage_mode.child_mode(),
-                downcast_field_identifier=_get_downcast_proxy(class_reference, attribute_name)
+                downcast_field_identifier=data.get(_get_downcast_proxy(class_reference, attribute_name), None)
             )
 
         setattr(class_instance, attribute_name, deserialized_value)
