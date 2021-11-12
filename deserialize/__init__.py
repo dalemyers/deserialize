@@ -42,7 +42,6 @@ from deserialize.type_checks import *
 from logging import getLogger
 import logging
 
-logging.basicConfig(level="DEBUG")
 logger = getLogger(__name__)
 
 
@@ -328,6 +327,7 @@ def _deserialize_dict(
     class_instance = None
 
     class_reference_downcast_field = _get_downcast_field(class_reference)
+    logger.debug(f"{debug_name} downcast field: {class_reference_downcast_field} , downcast proxy {downcast_field_identifier}")
     if class_reference_downcast_field or downcast_field_identifier:
         if class_reference_downcast_field and downcast_field_identifier:
             raise DeserializeException(f"{debug_name} cannot use both: 'downcast field' and 'downcast proxy'")
