@@ -431,7 +431,7 @@ def _deserialize_dict(
 
         logger.debug(f"Deserialized value for {debug_name}.{attribute_name}: {deserialized_value}")
         setattr(class_instance, attribute_name, deserialized_value)
-        logger.debug(f"{debug_name} instance after adding {attribute_name}: {class_instance}")
+        logger.debug(f"{debug_name} instance after adding {attribute_name}: {class_instance.__dict__}")
 
     unhandled = set(data.keys()) - handled_fields
 
