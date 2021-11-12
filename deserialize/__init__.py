@@ -370,7 +370,9 @@ def _deserialize_dict(
         )
 
     for attribute_name, attribute_type in hints.items():
+        logger.debug(f"Processing {debug_name}.{attribute_name}: {attribute_type}")
         if _should_ignore(class_reference, attribute_name):
+            logger.debug(f"Ignoring {debug_name}.{attribute_name}")
             continue
 
         property_key = _get_key(class_reference, attribute_name)
