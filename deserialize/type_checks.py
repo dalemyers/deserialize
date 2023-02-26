@@ -2,6 +2,7 @@
 
 import sys
 import typing
+import types
 
 import deserialize.exceptions
 
@@ -47,7 +48,7 @@ def is_union(type_value):
     if sys.version_info < (3, 10):
         return typing.get_origin(type_value) == typing.Union
 
-    return typing.get_origin(type_value) in [typing.Union, typing.Union]
+    return typing.get_origin(type_value) in [typing.Union, types.UnionType]
 
 
 def union_types(type_value, debug_name):
