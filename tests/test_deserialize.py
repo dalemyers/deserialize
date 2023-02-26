@@ -37,7 +37,10 @@ class MultiPropertySimpleType:
 
     def __str__(self):
         return str(
-            {"my_int_property": self.my_int_property, "my_str_property": self.my_str_property,}
+            {
+                "my_int_property": self.my_int_property,
+                "my_str_property": self.my_str_property,
+            }
         )
 
 
@@ -195,7 +198,11 @@ def test_complex_nested():
             "three": {"my_property": 3},
             "four": {"my_int_property": 34, "my_str_property": "Hello"},
             "five": {"my_property": 3},
-            "six": [{"my_list": []}, {"my_list": [1, 2, 3]}, {"my_list": [2, -4, 23]},],
+            "six": [
+                {"my_list": []},
+                {"my_list": [1, 2, 3]},
+                {"my_list": [2, -4, 23]},
+            ],
         },
         {
             "one": 12312312,
@@ -203,7 +210,11 @@ def test_complex_nested():
             "three": {"my_property": 3},
             "four": {"my_int_property": 34, "my_str_property": "Hello"},
             "five": None,
-            "six": [{"my_list": []}, {"my_list": [1, 2, 3]}, {"my_list": [2, -4, 23]},],
+            "six": [
+                {"my_list": []},
+                {"my_list": [1, 2, 3]},
+                {"my_list": [2, -4, 23]},
+            ],
         },
     ]
 
@@ -214,7 +225,11 @@ def test_complex_nested():
             "three": {"my_property": 3},
             "four": {"my_int_property": 34, "my_str_property": "Hello"},
             "five": {"my_property": 3},
-            "six": [{"my_list": []}, {"my_list": [1, 2, 3]}, {"my_list": [2, -4, 23]},],
+            "six": [
+                {"my_list": []},
+                {"my_list": [1, 2, 3]},
+                {"my_list": [2, -4, 23]},
+            ],
         },
         {
             "one": 12312312,
@@ -222,7 +237,11 @@ def test_complex_nested():
             "three": {"my_property": 3},
             "four": {"my_int_property": 34, "my_str_property": "Hello"},
             "five": None,
-            "six": [{"my_list": []}, {"my_list": [1, "Test", 3]}, {"my_list": [2, -4, 23]},],
+            "six": [
+                {"my_list": []},
+                {"my_list": [1, "Test", 3]},
+                {"my_list": [2, -4, 23]},
+            ],
         },
     ]
 

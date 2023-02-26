@@ -23,7 +23,10 @@ def test_snake_case_from_camel():
         int_field: int
         some_values: List[int]
 
-    instance = deserialize.deserialize(SnakeCaseItem, {"intField": 1, "someValues": [1, 2, 3]},)
+    instance = deserialize.deserialize(
+        SnakeCaseItem,
+        {"intField": 1, "someValues": [1, 2, 3]},
+    )
     assert instance.int_field == 1
     assert instance.some_values == [1, 2, 3]
 
@@ -38,7 +41,10 @@ def test_snake_case_from_pascal():
         int_field: int
         some_values: List[int]
 
-    instance = deserialize.deserialize(SnakeCaseItem, {"IntField": 1, "SomeValues": [1, 2, 3]},)
+    instance = deserialize.deserialize(
+        SnakeCaseItem,
+        {"IntField": 1, "SomeValues": [1, 2, 3]},
+    )
     assert instance.int_field == 1
     assert instance.some_values == [1, 2, 3]
 
@@ -54,7 +60,10 @@ def test_snake_case_non_snake_property():
         some_values: List[int]
 
     with pytest.raises(deserialize.DeserializeException):
-        _ = deserialize.deserialize(SnakeCaseItem, {"IntField": 1, "SomeValues": [1, 2, 3]},)
+        _ = deserialize.deserialize(
+            SnakeCaseItem,
+            {"IntField": 1, "SomeValues": [1, 2, 3]},
+        )
 
 
 def test_non_snake_case():
@@ -67,7 +76,10 @@ def test_non_snake_case():
         some_values: List[int]
 
     with pytest.raises(deserialize.DeserializeException):
-        _ = deserialize.deserialize(SnakeCaseItem, {"IntField": 1, "SomeValues": [1, 2, 3]},)
+        _ = deserialize.deserialize(
+            SnakeCaseItem,
+            {"IntField": 1, "SomeValues": [1, 2, 3]},
+        )
 
 
 def test_nested_snake_case():

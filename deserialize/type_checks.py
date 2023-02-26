@@ -32,7 +32,7 @@ def is_typing_type(class_reference):
     if sys.version_info < (3, 8):
         return isinstance(class_reference, typing._GenericAlias)
 
-    return typing.get_origin(class_reference) != None
+    return typing.get_origin(class_reference) is not None
 
 
 def is_union(type_value):
@@ -44,7 +44,10 @@ def is_union(type_value):
     if sys.version_info < (3, 8):
         return type_value.__origin__ == typing.Union
 
-    return typing.get_origin(type_value) == typing.Union
+    if sys.version_info < (3, 10):
+        return typing.get_origin(type_value) == typing.Union
+
+    return typing.get_origin(type_value) in [typing.Union, typing.Union]
 
 
 def union_types(type_value, debug_name):

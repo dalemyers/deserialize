@@ -6,9 +6,8 @@
 # pylint: disable=wildcard-import
 
 import enum
-import functools
 import typing
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict,  Optional
 
 from deserialize.conversions import camel_case, pascal_case
 from deserialize.decorators import constructed, _call_constructed
@@ -30,7 +29,6 @@ from deserialize.decorators import allow_unhandled, _should_allow_unhandled
 from deserialize.exceptions import (
     DeserializeException,
     InvalidBaseTypeException,
-    NoDefaultSpecifiedException,
     UndefinedDowncastException,
     UnhandledFieldException,
 )
@@ -100,6 +98,7 @@ def deserialize(class_reference, data, *, throw_on_unhandled: bool = False, raw_
 
 
 # pylint: enable=function-redefined
+
 
 # pylint:disable=too-many-return-statements
 def _deserialize(
@@ -175,9 +174,11 @@ def _deserialize(
             return finalize(class_reference(data))
         # pylint:disable=bare-except
         except:
+            # pylint: disable=raise-missing-from
             raise DeserializeException(
                 f"Cannot deserialize '{type(data)}' to '{class_reference}' for '{debug_name}'"
             )
+        # pylint:enable=bare-except,raise-missing-from
 
     if isinstance(data, dict):
         return finalize(
@@ -236,7 +237,6 @@ def _deserialize_list(
     throw_on_unhandled: bool,
     raw_storage_mode: RawStorageMode,
 ):
-
     if not isinstance(list_data, list):
         raise DeserializeException(
             f"Cannot deserialize '{type(list_data)}' as a list for {debug_name}."
@@ -287,7 +287,6 @@ def _deserialize_dict(
         result = {}
 
         for dict_key, dict_value in data.items():
-
             if key_type != Any and not isinstance(dict_key, key_type):
                 raise DeserializeException(
                     f"Could not deserialize key {dict_key} to type {key_type} for {debug_name}"

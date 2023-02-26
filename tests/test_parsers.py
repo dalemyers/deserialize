@@ -27,7 +27,8 @@ def test_parser():
     """Test that parsers are applied correctly."""
 
     instance = deserialize.deserialize(
-        SampleItem, {"int_field": "1", "datetime_field": 1543770752, "some_values": [1, 2, 3]},
+        SampleItem,
+        {"int_field": "1", "datetime_field": 1543770752, "some_values": [1, 2, 3]},
     )
     assert instance.int_field == 1
     assert instance.datetime_field == datetime.datetime(2018, 12, 2, 17, 12, 32)

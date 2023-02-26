@@ -106,7 +106,7 @@ def test_downcasting_multi():
             assert result.two == 2
             assert result.hello == "world"
         else:
-            raise Exception(f"Unexpected type: {type(result)}")
+            raise TypeError(f"Unexpected type: {type(result)}")
 
 
 def test_downcasting_nested():
