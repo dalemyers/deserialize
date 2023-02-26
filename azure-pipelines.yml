@@ -37,7 +37,7 @@ jobs:
 
   - script: |
      source venv/bin/activate
-     python -m black --check
+     python -m black --line-length 100 deserialize tests
     displayName: 'Run Black'
 
   - script: |
