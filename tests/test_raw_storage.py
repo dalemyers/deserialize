@@ -34,7 +34,7 @@ def test_root_simple():
 
     for test_case in valid_test_cases:
         instance = deserialize.deserialize(
-            SimpleStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.root
+            SimpleStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ROOT
         )
         assert test_case["one"] == instance.one
         assert test_case == instance.__deserialize_raw__
@@ -48,7 +48,7 @@ def test_root_bigger():
 
     for test_case in valid_test_cases:
         instance = deserialize.deserialize(
-            BiggerStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.root
+            BiggerStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ROOT
         )
         assert test_case["one"] == instance.one
         assert test_case["two"]["one"] == instance.two.one
@@ -65,7 +65,7 @@ def test_all_simple():
 
     for test_case in valid_test_cases:
         instance = deserialize.deserialize(
-            SimpleStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.all
+            SimpleStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ALL
         )
         assert test_case["one"] == instance.one
         assert test_case == instance.__deserialize_raw__
@@ -79,7 +79,7 @@ def test_all_bigger():
 
     for test_case in valid_test_cases:
         instance = deserialize.deserialize(
-            BiggerStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.all
+            BiggerStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ALL
         )
         assert test_case["one"] == instance.one
         assert test_case["two"]["one"] == instance.two.one

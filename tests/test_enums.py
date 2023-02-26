@@ -17,17 +17,17 @@ import deserialize
 class SomeStringEnum(enum.Enum):
     """Enum example."""
 
-    one = "One"
-    two = "Two"
-    three = "Three"
+    ONE = "One"
+    TWO = "Two"
+    THREE = "Three"
 
 
 class SomeIntEnum(enum.Enum):
     """Enum example."""
 
-    one = 1
-    two = 2
-    three = 3
+    ONE = 1
+    TWO = 2
+    THREE = 3
 
 
 class SomeClass:
@@ -78,14 +78,13 @@ def test_enums_order():
     class OrderTest(enum.Enum):
         """Order enum test class."""
 
-        one = "one"
-        two = "one"
-        three = "three"
+        ONE = "one"
+        TWO = "one"
+        THREE = "three"
 
-    test_cases = [[["one", "one", "three"], [OrderTest.one, OrderTest.one, OrderTest.three]]]
+    test_cases = [[["one", "one", "three"], [OrderTest.ONE, OrderTest.ONE, OrderTest.THREE]]]
 
     for test_case in test_cases:
-
         data = test_case[0]
         expected_result = test_case[1]
 

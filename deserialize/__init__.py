@@ -45,13 +45,13 @@ class RawStorageMode(enum.Enum):
     """
 
     # Do not store the raw data at all
-    none = "none"
+    NONE = "none"
 
     # Only store the data on the root node
-    root = "root"
+    ROOT = "root"
 
     # Store on all objects (WARNING: This can use a significant amount of memory)
-    all = "all"
+    ALL = "all"
 
     def child_mode(self) -> "RawStorageMode":
         """Determine the mode for child parsing.
@@ -64,20 +64,20 @@ class RawStorageMode(enum.Enum):
 
         :returns: The child raw storage mode
         """
-        if self == RawStorageMode.none:
-            return RawStorageMode.none
+        if self == RawStorageMode.NONE:
+            return RawStorageMode.NONE
 
-        if self == RawStorageMode.root:
-            return RawStorageMode.none
+        if self == RawStorageMode.ROOT:
+            return RawStorageMode.NONE
 
-        if self == RawStorageMode.all:
-            return RawStorageMode.all
+        if self == RawStorageMode.ALL:
+            return RawStorageMode.ALL
 
         raise DeserializeException(f"Unexpected raw storage mode: {self}")
 
 
 # pylint: disable=function-redefined
-def deserialize(class_reference, data, *, throw_on_unhandled: bool = False, raw_storage_mode: RawStorageMode = RawStorageMode.none):  # type: ignore
+def deserialize(class_reference, data, *, throw_on_unhandled: bool = False, raw_storage_mode: RawStorageMode = RawStorageMode.NONE):  # type: ignore
     """Deserialize data to a Python object."""
 
     if not isinstance(data, dict) and not isinstance(data, list):
@@ -127,7 +127,7 @@ def _deserialize(
         """Run through any finalization steps before returning the value."""
 
         # Set raw data where applicable
-        if raw_storage_mode in [RawStorageMode.root, RawStorageMode.all]:
+        if raw_storage_mode in [RawStorageMode.ROOT, RawStorageMode.ALL]:
             # We can't set attributes on primitive types
             if hasattr(value, "__dict__"):
                 setattr(value, "__deserialize_raw__", data)
