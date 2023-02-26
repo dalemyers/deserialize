@@ -3,7 +3,7 @@ jobs:
 
 - job: 'Test'
   pool:
-    vmImage: 'macOS-10.15'
+    vmImage: 'ubuntu-latest'
   strategy:
     matrix:
       Python37:
