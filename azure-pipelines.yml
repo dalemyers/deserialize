@@ -31,21 +31,21 @@ jobs:
     displayName: Create virtual environment
 
   - script: |
-      source venv/bin/activate
-      $HOME/.poetry/bin/poetry install
+      source $(System.DefaultWorkingDirectory)/venv/bin/activate
+      $HOME/.local/bin/poetry install
     displayName: 'Install dependencies'
 
-  - script: 
+  - script: |
      source venv/bin/activate
      python -m black --check
     displayName: 'Run Black'
 
-  - script: 
+  - script: |
      source venv/bin/activate
      python -m pylint --rcfile=pylintrc deserialize
     displayName: 'Lint'
 
-  - script: 
+  - script: |
      source venv/bin/activate
      python -m mypy --ignore-missing-imports deserialize/
     displayName: 'Type Check'
