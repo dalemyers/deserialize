@@ -84,6 +84,9 @@ def is_classvar(type_value):
 def is_list(type_value):
     """Check if a type is a list type."""
 
+    if type_value is list:
+        return True
+
     if not is_typing_type(type_value):
         return False
 
@@ -111,7 +114,15 @@ def list_content_type(type_value, debug_name):
     if sys.version_info < (3, 8):
         return type_value.__args__[0]
 
-    return typing.get_args(type_value)[0]
+    args = typing.get_args(type_value)
+
+    if len(args) == 0:
+        return typing.Any
+
+    if len(args) == 1:
+        return args[0]
+
+    raise TypeError(f"{type_value} should only have a single type for {debug_name}")
 
 
 def is_dict(type_value):

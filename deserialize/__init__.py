@@ -331,7 +331,10 @@ def _deserialize_dict(
             )
         class_reference = new_reference
 
-    class_instance = class_reference.__new__(class_reference)
+    try:
+        class_instance = class_reference.__new__(class_reference)
+    except TypeError as ex:
+        raise DeserializeException(f"Could not create instance of {class_reference} for {debug_name}") from ex
 
     handled_fields = set()
 
