@@ -3,13 +3,13 @@
 import enum
 import os
 import sys
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize, DeserializeException
 
 # pylint: enable=wrong-import-position
 
@@ -38,7 +38,7 @@ class SomeClass:
     my_optional_enum: Optional[SomeIntEnum]
 
 
-def test_enums_simple():
+def test_enums_simple() -> None:
     """Test that items with an enum property deserializes."""
     valid_test_cases = [
         {"my_value": 1, "my_enum": "One", "my_optional_enum": 1},
@@ -53,7 +53,7 @@ def test_enums_simple():
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(SomeClass, test_case)
+        instance = deserialize(SomeClass, test_case)
 
         assert test_case["my_value"] == instance.my_value
 
@@ -67,12 +67,12 @@ def test_enums_simple():
         else:
             assert test_case["my_optional_enum"] == instance.my_optional_enum.value
 
-    for test_case in invalid_test_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(SomeClass, test_case)
+    for invalid_test_case in invalid_test_cases:
+        with pytest.raises(DeserializeException):
+            _ = deserialize(SomeClass, invalid_test_case)
 
 
-def test_enums_order():
+def test_enums_order() -> None:
     """Test that enum ordering is consistent and expected."""
 
     class OrderTest(enum.Enum):
@@ -82,13 +82,15 @@ def test_enums_order():
         TWO = "one"
         THREE = "three"
 
-    test_cases = [[["one", "one", "three"], [OrderTest.ONE, OrderTest.ONE, OrderTest.THREE]]]
+    test_cases: list[list[Any]] = [
+        [["one", "one", "three"], [OrderTest.ONE, OrderTest.ONE, OrderTest.THREE]]
+    ]
 
     for test_case in test_cases:
         data = test_case[0]
         expected_result = test_case[1]
 
-        result = deserialize.deserialize(List[OrderTest], data)
+        result = deserialize(List[OrderTest], data)
 
         assert len(result) == len(data) == len(expected_result)
         assert result == expected_result

@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize
 
 # pylint: enable=wrong-import-position
 
@@ -24,7 +24,7 @@ class Rectangle(Shape):
     long_length: int
 
 
-def test_rectangle():
+def test_rectangle() -> None:
     """Test that rectange deserialization works correctly"""
 
     shape_data = [
@@ -33,7 +33,7 @@ def test_rectangle():
     ]
 
     for shape in shape_data:
-        rectangle = deserialize.deserialize(Rectangle, shape)
+        rectangle = deserialize(Rectangle, shape)
         assert rectangle.edges == shape["edges"]
         assert rectangle.vertices == shape["vertices"]
         assert rectangle.short_length == shape["short_length"]

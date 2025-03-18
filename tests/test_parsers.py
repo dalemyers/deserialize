@@ -7,14 +7,14 @@ from typing import List
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize, parser
 
 # pylint: enable=wrong-import-position
 
 
-@deserialize.parser("int_field", int)
-@deserialize.parser("datetime_field", datetime.datetime.fromtimestamp)
-@deserialize.parser("some_values", lambda x: [y * 2 for y in x])
+@parser("int_field", int)
+@parser("datetime_field", datetime.datetime.fromtimestamp)
+@parser("some_values", lambda x: [y * 2 for y in x])
 class SampleItem:
     """Sample item for use in tests."""
 
@@ -23,10 +23,10 @@ class SampleItem:
     some_values: List[int]
 
 
-def test_parser():
+def test_parser() -> None:
     """Test that parsers are applied correctly."""
 
-    instance = deserialize.deserialize(
+    instance = deserialize(
         SampleItem,
         {"int_field": "1", "datetime_field": 1543770752, "some_values": [1, 2, 3]},
     )

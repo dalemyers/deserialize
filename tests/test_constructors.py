@@ -2,11 +2,11 @@
 
 import os
 import sys
-from typing import Optional
+from typing import Any, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize
 
 # pylint: enable=wrong-import-position
 
@@ -30,31 +30,31 @@ class InheritedConstructor(BasicConstructor):
     four: int
 
 
-def test_basic_constructor():
+def test_basic_constructor() -> None:
     """Test that items with a constructor can be deserialized."""
-    test_cases = [
+    test_cases: list[dict[str, Any]] = [
         {"one": 1, "two": 2},
         {"one": 1, "two": 2, "three": None},
         {"one": 1, "two": 2, "three": 3},
     ]
 
     for test_case in test_cases:
-        instance = deserialize.deserialize(BasicConstructor, test_case)
+        instance = deserialize(BasicConstructor, test_case)
         assert test_case["one"] == instance.one
         assert test_case["two"] == instance.two
         assert test_case.get("three") == instance.three
 
 
-def test_inherited_constructor():
+def test_inherited_constructor() -> None:
     """Test that items with an inherited constructor can be deserialized."""
-    test_cases = [
+    test_cases: list[dict[str, Any]] = [
         {"one": 1, "two": 2, "four": 4},
         {"one": 1, "two": 2, "three": None, "four": 4},
         {"one": 1, "two": 2, "three": 3, "four": 4},
     ]
 
     for test_case in test_cases:
-        instance = deserialize.deserialize(InheritedConstructor, test_case)
+        instance = deserialize(InheritedConstructor, test_case)
         assert test_case["one"] == instance.one
         assert test_case["two"] == instance.two
         assert test_case.get("three") == instance.three

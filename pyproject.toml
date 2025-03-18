@@ -1,13 +1,11 @@
 [tool.poetry]
 name = "deserialize"
-version = "2.0.1"
+version = "3.0.0"
 description = "A library to make deserialization easy."
 
 license = "MIT"
 
-authors = [
-    "Dale Myers <dale@myers.io>"
-]
+authors = ["Dale Myers <dale@myers.io>"]
 
 readme = 'README.md'
 
@@ -21,17 +19,17 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Topic :: Software Development :: Libraries"
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Libraries",
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7.2"
+python = "^3.9"
 
 [tool.poetry.dev-dependencies]
-black = "=23.1.0"
-mypy = "=1.0.1"
-pylint = "=2.16.2"
+black = "=25.1.0"
+mypy = "=1.15.0"
+pylint = "=3.3.5"
 pytest = "=7.2.1"
 pytest-cov = "=4.0.0"
 recommonmark = "=0.7.1"

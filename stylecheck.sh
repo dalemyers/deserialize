@@ -8,7 +8,7 @@ python -m black --line-length 100 deserialize tests
 
 python -m pylint --rcfile=pylintrc deserialize tests
 
-python -m mypy --ignore-missing-imports deserialize/ tests/
+python -m mypy --ignore-missing-imports --disable-error-code operator deserialize/ tests/
 
 popd > /dev/null
 

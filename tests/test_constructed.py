@@ -8,12 +8,12 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize, constructed
 
 # pylint: enable=wrong-import-position
 
 
-@deserialize.constructed(lambda x: setattr(x, "constructed", True))
+@constructed(lambda x: setattr(x, "constructed", True))
 class Basic:
     """Represents a basic class."""
 
@@ -31,7 +31,7 @@ def convert_to_radians(instance: "PolarCoordinate") -> None:
     instance.angle = instance.angle * math.pi / 180
 
 
-@deserialize.constructed(convert_to_radians)
+@constructed(convert_to_radians)
 class PolarCoordinate:
     """Represents a polar coordinate."""
 
@@ -39,25 +39,25 @@ class PolarCoordinate:
     magnitude: float
 
 
-def test_constructed():
+def test_constructed() -> None:
     """Test that the constructed decoratorworks correctly"""
 
     data = [{"one": 1}]
 
     for item in data:
-        instance = deserialize.deserialize(Basic, item)
+        instance = deserialize(Basic, item)
         assert getattr(instance, "constructed")
-        instance = deserialize.deserialize(BasicUnconstructed, item)
+        instance = deserialize(BasicUnconstructed, item)
         with pytest.raises(AttributeError):
             getattr(instance, "constructed")
 
 
-def test_polar():
+def test_polar() -> None:
     """Test that the polar coordinates example from the README works."""
 
     data = {"angle": 180.0, "magnitude": 42.0}
 
-    instance = deserialize.deserialize(PolarCoordinate, data)
+    instance = deserialize(PolarCoordinate, data)
 
     assert -0.0001 < instance.angle - math.pi < 0.0001
     assert instance.magnitude == data["magnitude"]

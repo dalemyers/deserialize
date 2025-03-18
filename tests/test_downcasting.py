@@ -9,7 +9,13 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import (
+    deserialize,
+    downcast_field,
+    downcast_identifier,
+    allow_downcast_fallback,
+    UndefinedDowncastException,
+)
 
 # pylint: enable=wrong-import-position
 
@@ -22,21 +28,21 @@ class SomeRandomBase:
     hello: str
 
 
-@deserialize.downcast_field("type_name")
+@downcast_field("type_name")
 class DowncastableBase:
     """A downcastable base class."""
 
     type_name: str
 
 
-@deserialize.downcast_identifier(DowncastableBase, "foo")
+@downcast_identifier(DowncastableBase, "foo")
 class Foo(DowncastableBase):
     """Downcastable class."""
 
     one: int
 
 
-@deserialize.downcast_identifier(DowncastableBase, "bar")
+@downcast_identifier(DowncastableBase, "bar")
 class Bar(DowncastableBase, SomeRandomBase):
     """Downcastable class."""
 
@@ -49,38 +55,38 @@ class Baz(DowncastableBase):
     three: int
 
 
-def test_downcasting_foo():
+def test_downcasting_foo() -> None:
     """Test that we can deserialize a simple class."""
 
     data = {"type_name": "foo", "one": 1}
 
-    result = deserialize.deserialize(DowncastableBase, data)
+    result = deserialize(DowncastableBase, data)
     assert isinstance(result, Foo)
     assert result.one == 1
     assert result.type_name == "foo"
 
 
-def test_downcasting_bar():
+def test_downcasting_bar() -> None:
     """Test that we can deserialize a class with multiple bases."""
 
     data = {"type_name": "bar", "two": 2, "hello": "world"}
 
-    result = deserialize.deserialize(DowncastableBase, data)
+    result = deserialize(DowncastableBase, data)
     assert isinstance(result, Bar)
     assert result.two == 2
     assert result.type_name == "bar"
 
 
-def test_downcasting_baz():
+def test_downcasting_baz() -> None:
     """Test that non-declared subclasses don't deserialize."""
 
     data = {"type_name": "baz", "three": 3}
 
-    with pytest.raises(deserialize.UndefinedDowncastException):
-        _ = deserialize.deserialize(DowncastableBase, data)
+    with pytest.raises(UndefinedDowncastException):
+        _ = deserialize(DowncastableBase, data)
 
 
-def test_downcasting_multi():
+def test_downcasting_multi() -> None:
     """Test that we can deserialize a simple class."""
 
     casts = [("foo", Foo), ("bar", Bar), ("baz", Baz)]
@@ -91,11 +97,11 @@ def test_downcasting_multi():
         specific_data["type_name"] = identifier
 
         if identifier == "baz":
-            with pytest.raises(deserialize.UndefinedDowncastException):
-                _ = deserialize.deserialize(DowncastableBase, specific_data)
+            with pytest.raises(UndefinedDowncastException):
+                _ = deserialize(DowncastableBase, specific_data)
             continue
 
-        result = deserialize.deserialize(DowncastableBase, specific_data)
+        result = deserialize(DowncastableBase, specific_data)
 
         assert isinstance(result, subclass)
         assert result.type_name == identifier
@@ -109,12 +115,15 @@ def test_downcasting_multi():
             raise TypeError(f"Unexpected type: {type(result)}")
 
 
-def test_downcasting_nested():
+def test_downcasting_nested() -> None:
     """Test that we can deserialize a nested downcast classes."""
 
-    data = [{"type_name": "foo", "one": 1}, {"type_name": "bar", "two": 2, "hello": "world"}]
+    data = [
+        {"type_name": "foo", "one": 1},
+        {"type_name": "bar", "two": 2, "hello": "world"},
+    ]
 
-    results = deserialize.deserialize(List[DowncastableBase], data)
+    results = deserialize(List[DowncastableBase], data)
     foo = results[0]
     bar = results[1]
 
@@ -128,17 +137,17 @@ def test_downcasting_nested():
     assert bar.type_name == "bar"
 
 
-def test_downcasting_fallback():
+def test_downcasting_fallback() -> None:
     """Test that we can deserialize a class with a fallback."""
 
-    @deserialize.downcast_field("type_name")
-    @deserialize.allow_downcast_fallback()
+    @downcast_field("type_name")
+    @allow_downcast_fallback()
     class MyBase:
         """A downcastable base class."""
 
         type_name: str
 
-    @deserialize.downcast_identifier(MyBase, "foo")
+    @downcast_identifier(MyBase, "foo")
     class MyFoo(MyBase):
         """Downcastable class."""
 
@@ -149,7 +158,7 @@ def test_downcasting_fallback():
         {"type_name": "bar", "some_data": 42},
     ]
 
-    results = deserialize.deserialize(List[MyBase], data)
+    results = deserialize(List[MyBase], data)
     foo = results[0]
     bar = results[1]
 

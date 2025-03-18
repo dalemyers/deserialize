@@ -2,11 +2,11 @@
 
 import os
 import sys
-from typing import List
+from typing import Any, List
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize
 
 # pylint: enable=wrong-import-position
 
@@ -40,18 +40,18 @@ class TVShow:
     creator: str
 
 
-def test_example():
+def test_example() -> None:
     """Test that the example from the README deserializes correctly."""
 
     actor_data = [{"name": "Man", "age": 35}, {"name": "Woman", "age": 52}]
 
     episode_data = [{"title": "Some Episode", "identifier": "abcdef", "actors": actor_data}]
 
-    season_data = [{"episodes": episode_data, "completed": True}]
+    season_data: list[dict[str, Any]] = [{"episodes": episode_data, "completed": True}]
 
     show_data = {"seasons": season_data, "creator": "Person"}
 
-    show = deserialize.deserialize(TVShow, show_data)
+    show = deserialize(TVShow, show_data)
     assert show.creator == show_data["creator"]
     assert len(show.seasons) == len(season_data)
 

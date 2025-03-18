@@ -9,7 +9,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize, DeserializeException, InvalidBaseTypeException
 
 # pylint: enable=wrong-import-position
 
@@ -24,67 +24,67 @@ class Empty:
     """Sample empty item"""
 
 
-def test_dicts():
+def test_dicts() -> None:
     """Test that root dicts deserialize correctly."""
 
     data = {"field": 1}
 
-    instance = deserialize.deserialize(Item, data)
+    instance = deserialize(Item, data)
     assert data["field"] == instance.field
 
 
-def test_empty_classes():
+def test_empty_classes() -> None:
     """Test that empty classes throw an exception on deserialization."""
 
-    data = {}
+    data: dict[str, str] = {}
 
-    with pytest.raises(deserialize.DeserializeException):
-        _ = deserialize.deserialize(Empty, data)
+    with pytest.raises(DeserializeException):
+        _ = deserialize(Empty, data)
 
 
-def test_lists():
+def test_lists() -> None:
     """Test that root lists deserialize correctly."""
 
     data = [{"field": 1}]
 
-    instances = deserialize.deserialize(List[Item], data)
+    instances = deserialize(List[Item], data)
 
     assert len(instances) == 1
     assert instances[0].field == data[0]["field"]
 
 
-def test_list_of_lists():
+def test_list_of_lists() -> None:
     """Test that root lists deserialize correctly."""
 
     data = [[{"field": 1}]]
 
-    instances = deserialize.deserialize(List[List[Item]], data)
+    instances = deserialize(List[List[Item]], data)
 
     assert len(instances) == 1
     assert len(instances[0]) == 1
     assert instances[0][0].field == data[0][0]["field"]
 
 
-def test_list_of_optionals():
+def test_list_of_optionals() -> None:
     """Test that root lists deserialize correctly."""
 
     data = [1, None, 3, None, 5, None]
 
-    instances = deserialize.deserialize(List[Optional[int]], data)
+    instances = deserialize(List[Optional[int]], data)
 
     assert instances == data
 
 
-def test_base_type_lists():
+def test_base_type_lists() -> None:
     """Test that lists of base types parse."""
 
     data = [1, 2, 3]
 
-    parsed = deserialize.deserialize(List[int], data)
+    parsed = deserialize(List[int], data)
     assert data == parsed
 
 
-def test_base_type():
+def test_base_type() -> None:
     """Test that base types don't parse."""
 
     base_types = [
@@ -99,5 +99,5 @@ def test_base_type():
     ]
 
     for base_value, base_type in base_types:
-        with pytest.raises(deserialize.InvalidBaseTypeException):
-            _ = deserialize.deserialize(base_type, base_value)
+        with pytest.raises(InvalidBaseTypeException):
+            _ = deserialize(base_type, base_value)

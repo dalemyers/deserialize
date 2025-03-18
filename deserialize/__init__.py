@@ -7,7 +7,7 @@
 
 import enum
 import typing
-from typing import Any, Dict,  Optional
+from typing import Any, Dict, Optional
 
 from deserialize.conversions import camel_case, pascal_case
 from deserialize.decorators import constructed, _call_constructed
@@ -102,7 +102,12 @@ def deserialize(class_reference, data, *, throw_on_unhandled: bool = False, raw_
 
 # pylint:disable=too-many-return-statements
 def _deserialize(
-    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode
+    class_reference,
+    data,
+    debug_name,
+    *,
+    throw_on_unhandled: bool,
+    raw_storage_mode: RawStorageMode,
 ):
     """Deserialize data to a Python object, but allow base types"""
 
@@ -265,7 +270,12 @@ def _deserialize_list(
 
 
 def _deserialize_dict(
-    class_reference, data, debug_name, *, throw_on_unhandled: bool, raw_storage_mode: RawStorageMode
+    class_reference,
+    data,
+    debug_name,
+    *,
+    throw_on_unhandled: bool,
+    raw_storage_mode: RawStorageMode,
 ):
     """Deserialize a dictionary to a Python object."""
 
@@ -334,7 +344,9 @@ def _deserialize_dict(
     try:
         class_instance = class_reference.__new__(class_reference)
     except TypeError as ex:
-        raise DeserializeException(f"Could not create instance of {class_reference} for {debug_name}") from ex
+        raise DeserializeException(
+            f"Could not create instance of {class_reference} for {debug_name}"
+        ) from ex
 
     handled_fields = set()
 
@@ -365,6 +377,8 @@ def _deserialize_dict(
             )
 
         using_default = False
+        property_value = None
+        deserialized_value = None
 
         if property_key in data:
             value = data[property_key]

@@ -10,7 +10,7 @@ from deserialize import camel_case, pascal_case
 # pylint: enable=wrong-import-position
 
 
-def test_camel_case():
+def test_camel_case() -> None:
     """Test that camel casing is applied correctly."""
 
     assert camel_case("hello_world") == "helloWorld"
@@ -25,7 +25,7 @@ def test_camel_case():
     assert camel_case("HELLO_WORLD") == "helloWorld"
 
 
-def test_pascal_case():
+def test_pascal_case() -> None:
     """Test that pascal casing is applied correctly."""
     assert pascal_case("hello_world") == "HelloWorld"
     assert pascal_case("hello") == "Hello"

@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize, DeserializeException
 
 # pylint: enable=wrong-import-position
 
@@ -20,14 +20,14 @@ class BasicType:
     member_var: int
 
 
-def test_basic_classvar():
+def test_basic_classvar() -> None:
     """Test that items with a constructor can be deserialized."""
     test_cases = [
         {"member_var": 1},
     ]
 
     for test_case in test_cases:
-        instance = deserialize.deserialize(BasicType, test_case)
+        instance = deserialize(BasicType, test_case)
         assert test_case["member_var"] == instance.member_var
         assert BasicType.class_var == 1
 
@@ -39,5 +39,5 @@ def test_basic_classvar():
     ]
 
     for test_case in test_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(BasicType, test_case)
+        with pytest.raises(DeserializeException):
+            _ = deserialize(BasicType, test_case)

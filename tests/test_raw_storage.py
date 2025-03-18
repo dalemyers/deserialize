@@ -2,11 +2,11 @@
 
 import os
 import sys
-from typing import List
+from typing import Any, List
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize, RawStorageMode
 
 # pylint: enable=wrong-import-position
 
@@ -25,7 +25,7 @@ class BiggerStorageClass:
     three: List[str]
 
 
-def test_root_simple():
+def test_root_simple() -> None:
     """Test that root only storage works."""
     valid_test_cases = [
         {"one": 1},
@@ -33,22 +33,26 @@ def test_root_simple():
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(
-            SimpleStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ROOT
+        instance = deserialize(
+            SimpleStorageClass,
+            test_case,
+            raw_storage_mode=RawStorageMode.ROOT,
         )
         assert test_case["one"] == instance.one
         assert test_case == instance.__deserialize_raw__
 
 
-def test_root_bigger():
+def test_root_bigger() -> None:
     """Test that root only storage works on more complex examples."""
-    valid_test_cases = [
+    valid_test_cases: list[dict[str, Any]] = [
         {"one": 1, "two": {"one": 1}, "three": ["one", "two", "three"]},
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(
-            BiggerStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ROOT
+        instance = deserialize(
+            BiggerStorageClass,
+            test_case,
+            raw_storage_mode=RawStorageMode.ROOT,
         )
         assert test_case["one"] == instance.one
         assert test_case["two"]["one"] == instance.two.one
@@ -57,29 +61,33 @@ def test_root_bigger():
         assert not hasattr(instance.two, "__deserialize_raw__")
 
 
-def test_all_simple():
+def test_all_simple() -> None:
     """Test that all property storage works."""
     valid_test_cases = [
         {"one": 1},
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(
-            SimpleStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ALL
+        instance = deserialize(
+            SimpleStorageClass,
+            test_case,
+            raw_storage_mode=RawStorageMode.ALL,
         )
         assert test_case["one"] == instance.one
         assert test_case == instance.__deserialize_raw__
 
 
-def test_all_bigger():
+def test_all_bigger() -> None:
     """Test that root only storage works on more complex examples."""
-    valid_test_cases = [
+    valid_test_cases: list[dict[str, Any]] = [
         {"one": 1, "two": {"one": 1}, "three": ["one", "two", "three"]},
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(
-            BiggerStorageClass, test_case, raw_storage_mode=deserialize.RawStorageMode.ALL
+        instance = deserialize(
+            BiggerStorageClass,
+            test_case,
+            raw_storage_mode=RawStorageMode.ALL,
         )
         assert test_case["one"] == instance.one
         assert test_case["two"]["one"] == instance.two.one

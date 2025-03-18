@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-import deserialize
+from deserialize import deserialize, DeserializeException
 
 # pylint: enable=wrong-import-position
 
@@ -111,7 +111,7 @@ class NonJsonTypes:
     two: range
 
 
-def test_single_simple():
+def test_single_simple() -> None:
     """Test that items with a single property and simple types deserialize."""
     valid_test_cases = [
         {"my_property": 1},
@@ -126,15 +126,15 @@ def test_single_simple():
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(SinglePropertySimpleType, test_case)
+        instance = deserialize(SinglePropertySimpleType, test_case)
         assert test_case["my_property"] == instance.my_property
 
-    for test_case in invalid_test_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(SinglePropertySimpleType, test_case)
+    for invalid_test_case in invalid_test_cases:
+        with pytest.raises(DeserializeException):
+            _ = deserialize(SinglePropertySimpleType, invalid_test_case)
 
 
-def test_multi_simple():
+def test_multi_simple() -> None:
     """Test that items with multiple properties and simple types deserialize."""
     valid_test_cases = [
         {"my_int_property": 1, "my_str_property": "Hello"},
@@ -154,24 +154,24 @@ def test_multi_simple():
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(MultiPropertySimpleType, test_case)
+        instance = deserialize(MultiPropertySimpleType, test_case)
         assert test_case["my_int_property"] == instance.my_int_property
         assert test_case["my_str_property"] == instance.my_str_property
 
-    for test_case in invalid_test_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(MultiPropertySimpleType, test_case)
+    for invalid_test_case in invalid_test_cases:
+        with pytest.raises(DeserializeException):
+            _ = deserialize(MultiPropertySimpleType, invalid_test_case)
 
 
-def test_single_complex():
+def test_single_complex() -> None:
     """Test that items with a single property and complex types deserialize."""
-    valid_test_cases = [
+    valid_test_cases: list[dict[str, list[int]]] = [
         {"my_list": []},
         {"my_list": [1, 2, 3]},
         {"my_list": [2, -4, 23]},
     ]
 
-    invalid_test_cases = [
+    invalid_test_cases: list[dict[str, Any]] = [
         {"my_list": [None]},
         {"my_list": [1, None, 3]},
         {"my_list": [2, 3.14, 23]},
@@ -181,17 +181,17 @@ def test_single_complex():
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(SinglePropertyComplexType, test_case)
+        instance = deserialize(SinglePropertyComplexType, test_case)
         assert test_case["my_list"] == instance.my_list
 
-    for test_case in invalid_test_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(SinglePropertyComplexType, test_case)
+    for invalid_test_case in invalid_test_cases:
+        with pytest.raises(DeserializeException):
+            _ = deserialize(SinglePropertyComplexType, invalid_test_case)
 
 
-def test_complex_nested():
+def test_complex_nested() -> None:
     """Test that items in a complex nested object deserialize."""
-    valid_test_cases = [
+    valid_test_cases: list[dict[str, Any]] = [
         {
             "one": 1,
             "two": "2",
@@ -218,7 +218,7 @@ def test_complex_nested():
         },
     ]
 
-    invalid_test_cases = [
+    invalid_test_cases: list[dict[str, Any]] = [
         {
             "one": None,
             "two": "2",
@@ -246,7 +246,7 @@ def test_complex_nested():
     ]
 
     for test_case in valid_test_cases:
-        instance = deserialize.deserialize(ComplexNestedType, test_case)
+        instance = deserialize(ComplexNestedType, test_case)
         assert test_case["one"] == instance.one
         assert test_case["two"] == instance.two
         assert test_case["three"]["my_property"] == instance.three.my_property
@@ -260,70 +260,70 @@ def test_complex_nested():
             assert test_case["six"][i]["my_list"] == instance.six[i].my_list
 
     for test_case in invalid_test_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(ComplexNestedType, test_case)
+        with pytest.raises(DeserializeException):
+            _ = deserialize(ComplexNestedType, test_case)
 
 
-def test_unannotated():
+def test_unannotated() -> None:
     """Test parsing unannotated classes."""
     data = {"value": 1}
 
-    with pytest.raises(deserialize.DeserializeException):
-        _ = deserialize.deserialize(UnannotatedClass, data)
+    with pytest.raises(DeserializeException):
+        _ = deserialize(UnannotatedClass, data)
 
 
-def test_type_with_dict():
+def test_type_with_dict() -> None:
     """Test parsing types with dicts."""
 
-    test_cases = [
+    test_cases: list[dict[str, Any]] = [
         {"value": 1, "dict_value": {"Hello": 1, "World": 2}},
         {"value": 1, "dict_value": {}},
     ]
 
     for test_case in test_cases:
-        instance = deserialize.deserialize(TypeWithDict, test_case)
+        instance = deserialize(TypeWithDict, test_case)
         assert instance.value == test_case["value"]
         for key, value in test_case["dict_value"].items():
             assert instance.dict_value.get(key) == value
 
-    failure_cases = [
+    failure_cases: list[dict[str, Any]] = [
         {"value": 1, "dict_value": {"Hello": "one", "World": "two"}},
         {"value": 1, "dict_value": {1: "one", 2: "two"}},
         {"value": 1, "dict_value": []},
     ]
 
     for test_case in failure_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(TypeWithDict, test_case)
+        with pytest.raises(DeserializeException):
+            _ = deserialize(TypeWithDict, test_case)
 
 
-def test_type_with_simple_dict():
+def test_type_with_simple_dict() -> None:
     """Test parsing types with dicts."""
 
-    test_cases = [
+    test_cases: list[dict[str, Any]] = [
         {"value": 1, "dict_value": {"Hello": 1, "World": 2}},
         {"value": 1, "dict_value": {}},
     ]
 
     for test_case in test_cases:
-        instance = deserialize.deserialize(TypeWithSimpleDict, test_case)
+        instance = deserialize(TypeWithSimpleDict, test_case)
         assert instance.value == test_case["value"]
         for key, value in test_case["dict_value"].items():
             assert instance.dict_value.get(key) == value
 
-    failure_cases = [
+    failure_cases: list[dict[str, Any]] = [
         {"value": 1, "dict_value": []},
     ]
 
     for test_case in failure_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(TypeWithDict, test_case)
+        with pytest.raises(DeserializeException):
+            _ = deserialize(TypeWithDict, test_case)
 
 
-def test_type_with_complex_dict():
+def test_type_with_complex_dict() -> None:
     """Test parsing types with complex dicts."""
 
-    test_cases = [
+    test_cases: list[dict[str, Any]] = [
         {
             "value": 1,
             "dict_value": {"Hello": {"value": 1, "dict_value": {"Hello": 1, "World": 2}}},
@@ -332,7 +332,7 @@ def test_type_with_complex_dict():
     ]
 
     for test_case in test_cases:
-        instance = deserialize.deserialize(TypeWithComplexDict, test_case)
+        instance = deserialize(TypeWithComplexDict, test_case)
         assert instance.value == test_case["value"]
         sub_instance = instance.dict_value["Hello"]
         sub_test_case = test_case["dict_value"]["Hello"]
@@ -340,7 +340,7 @@ def test_type_with_complex_dict():
         for key, value in sub_test_case["dict_value"].items():
             assert sub_instance.dict_value.get(key) == value
 
-    failure_cases = [
+    failure_cases: list[dict[str, Any]] = [
         {"value": 1, "dict_value": {"Hello": {}}},
         {
             "value": 1,
@@ -350,20 +350,20 @@ def test_type_with_complex_dict():
     ]
 
     for test_case in failure_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(TypeWithComplexDict, test_case)
+        with pytest.raises(DeserializeException):
+            _ = deserialize(TypeWithComplexDict, test_case)
 
 
-def test_type_with_union():
+def test_type_with_union() -> None:
     """Test parsing types with complex dicts."""
 
-    test_cases = [
+    test_cases: list[dict[str, Any]] = [
         {"union_value": "one"},
         {"union_value": 1},
     ]
 
     for test_case in test_cases:
-        instance = deserialize.deserialize(TypeWithUnion, test_case)
+        instance = deserialize(TypeWithUnion, test_case)
         assert instance.union_value == test_case["union_value"]
 
     failure_cases = [
@@ -371,15 +371,15 @@ def test_type_with_union():
     ]
 
     for test_case in failure_cases:
-        with pytest.raises(deserialize.DeserializeException):
-            _ = deserialize.deserialize(TypeWithUnion, test_case)
+        with pytest.raises(DeserializeException):
+            _ = deserialize(TypeWithUnion, test_case)
 
 
-def test_non_json_types():
+def test_non_json_types() -> None:
     """Test parsing types that are not JSON compatible."""
 
     data = {"one": (1, 2), "two": range(3)}
 
-    result = deserialize.deserialize(NonJsonTypes, data)
+    result = deserialize(NonJsonTypes, data)
     assert data["one"] == result.one
     assert data["two"] == result.two
