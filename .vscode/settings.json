@@ -42,5 +42,9 @@
         "./tests",
         "-p",
         "test_*.py"
+    ],
+    "black-formatter.args": [
+        "--line-length",
+        "100"
     ]
 }
