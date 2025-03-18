@@ -6,6 +6,7 @@
 # pylint: disable=wildcard-import
 
 import enum
+import inspect
 import typing
 from typing import Any, Dict, Optional
 
@@ -104,7 +105,7 @@ def _deserialize(
     if class_reference == Any:
         return finalize(data)
 
-    if issubclass(class_reference, CustomDeserializable):
+    if inspect.isclass(class_reference) and issubclass(class_reference, CustomDeserializable):
         # If the class is a custom deserializable, we need to call the
         # deserialize method on it
         return finalize(class_reference.deserialize(data))
