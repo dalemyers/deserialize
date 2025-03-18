@@ -273,3 +273,30 @@ result = deserialize.deserialize(List[MyBase], data)
 Here, `result[0]` will be an instance of `Foo` and `result[1]` will be an instance of `Bar`.
 
 If you can't describe all of your types, you can use `@deserialize.allow_downcast_fallback` on your base class and any unknowns will be left as dictionaries.
+
+
+### Custom Deserializing
+
+If none of the above work for you, sometimes there's no choice but to turn to customized deserialization code. To do this is very easy. Simple implement the `CustomDeserializable` protocol, and add the `deserialize` method to your class like so:
+
+```python
+class MyObject(deserialize.CustomDeserializable):
+
+    name: str
+    age: int
+
+    def __init__(self, name: str, age: int) -> None:
+        self.name = name
+        self.age = age
+
+    @classmethod
+    def deserialize(cls, value: Any) -> "MyObject":
+        assert isinstance(value, list)
+        assert len(value) == 2
+
+        return cls(value[0], value[1])
+```
+
+Normally you'd use a dictionary to create an object (something like `{"name": "Hodor", "age": 42}`), but this now allows us to use a list. i.e. `my_instance = deserialize.deserialize(MyObject, ["Hodor", 42])`
+
+No type checking is done on the result or input. It's entirely on the implementer at this point. 

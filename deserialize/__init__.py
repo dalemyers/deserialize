@@ -10,6 +10,7 @@ import typing
 from typing import Any, Dict, Optional
 
 from deserialize.conversions import camel_case, pascal_case
+from deserialize.custom_deserializable import CustomDeserializable
 from deserialize.decorators import constructed, _call_constructed
 from deserialize.decorators import default, _get_default, _has_default
 from deserialize.decorators import (
@@ -32,46 +33,8 @@ from deserialize.exceptions import (
     UndefinedDowncastException,
     UnhandledFieldException,
 )
+from deserialize.raw_storage_mode import RawStorageMode
 from deserialize.type_checks import *
-
-
-class RawStorageMode(enum.Enum):
-    """The storage mode for the raw data on each object.
-
-    If a store mode is set, the data will be stored in the attribute named:
-    `__deserialize_raw__`
-    """
-
-    # Do not store the raw data at all
-    NONE = "none"
-
-    # Only store the data on the root node
-    ROOT = "root"
-
-    # Store on all objects (WARNING: This can use a significant amount of memory)
-    ALL = "all"
-
-    def child_mode(self) -> "RawStorageMode":
-        """Determine the mode for child parsing.
-
-        When we move to the next child iteration, we need to change mode
-        in some cases. For instance, if we only store the root node, then we
-        need to set all the children to not be stored.
-
-        :raises Exception: If we get an unexpected storage mode
-
-        :returns: The child raw storage mode
-        """
-        if self == RawStorageMode.NONE:
-            return RawStorageMode.NONE
-
-        if self == RawStorageMode.ROOT:
-            return RawStorageMode.NONE
-
-        if self == RawStorageMode.ALL:
-            return RawStorageMode.ALL
-
-        raise DeserializeException(f"Unexpected raw storage mode: {self}")
 
 
 # pylint: disable=function-redefined
@@ -140,6 +103,11 @@ def _deserialize(
 
     if class_reference == Any:
         return finalize(data)
+
+    if issubclass(class_reference, CustomDeserializable):
+        # If the class is a custom deserializable, we need to call the
+        # deserialize method on it
+        return finalize(class_reference.deserialize(data))
 
     # Check if it's None (since things like Union[int, Optional[str]] become
     # Union[int, str, None] so we end up iterating against it)
