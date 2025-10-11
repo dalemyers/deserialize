@@ -36,6 +36,7 @@ from deserialize.exceptions import (
 )
 from deserialize.raw_storage_mode import RawStorageMode
 from deserialize.type_checks import *
+from deserialize.metadata_cache import get_class_metadata
 
 
 # pylint: disable=function-redefined
@@ -292,12 +293,15 @@ def _deserialize_dict(
 
     class_instance = None
 
-    class_reference_downcast_field = _get_downcast_field(class_reference)
-    if class_reference_downcast_field:
-        downcast_value = data[class_reference_downcast_field]
+    # Use metadata cache for performance
+    metadata = get_class_metadata(class_reference)
+
+    # Handle downcasting
+    if metadata.downcast_field:
+        downcast_value = data[metadata.downcast_field]
         new_reference = _get_downcast_class(class_reference, downcast_value)
         if new_reference is None:
-            if _allows_downcast_fallback(class_reference):
+            if metadata.allows_downcast_fallback:
                 return _deserialize(
                     Dict[Any, Any],
                     data,
@@ -308,7 +312,9 @@ def _deserialize_dict(
             raise UndefinedDowncastException(
                 f"Could not find subclass of {class_reference} with downcast identifier '{downcast_value}' for {debug_name}"
             )
+        # Update class reference and get new metadata
         class_reference = new_reference
+        metadata = get_class_metadata(class_reference)
 
     try:
         class_instance = class_reference.__new__(class_reference)
@@ -319,28 +325,28 @@ def _deserialize_dict(
 
     handled_fields = set()
 
-    hints = typing.get_type_hints(class_reference)
-
-    if len(hints) == 0:
+    # Check if we have type hints (using cached hints from metadata)
+    if len(metadata.hints) == 0:
         raise DeserializeException(
             f"Could not deserialize {data} into {class_reference} due to lack of type hints ({debug_name})"
         )
 
-    for attribute_name, attribute_type in hints.items():
-        if _should_ignore(class_reference, attribute_name):
+    # Process fields using cached metadata
+    for attribute_name, field_meta in metadata.fields.items():
+        # Skip ignored fields
+        if field_meta.ignore:
             continue
 
-        property_key = _get_key(class_reference, attribute_name)
-        parser_function = _get_parser(class_reference, property_key)
-
-        if is_classvar(attribute_type):
-            if property_key in data:
+        # Skip ClassVars
+        if field_meta.is_classvar:
+            if field_meta.key in data:
                 raise DeserializeException(
                     f"ClassVars cannot be set: {debug_name}.{attribute_name}"
                 )
             continue
 
-        if _uses_auto_snake(class_reference) and attribute_name.lower() != attribute_name:
+        # Check auto_snake property naming
+        if metadata.auto_snake and attribute_name.lower() != attribute_name:
             raise DeserializeException(
                 f"When using auto_snake, all properties must be snake cased. Error on: {debug_name}.{attribute_name}"
             )
@@ -349,34 +355,35 @@ def _deserialize_dict(
         property_value = None
         deserialized_value = None
 
-        if property_key in data:
-            value = data[property_key]
-            handled_fields.add(property_key)
-            property_value = parser_function(value)
-        elif _uses_auto_snake(class_reference) and camel_case(property_key) in data:
-            value = data[camel_case(property_key)]
-            handled_fields.add(camel_case(property_key))
-            property_value = parser_function(value)
-        elif _uses_auto_snake(class_reference) and pascal_case(property_key) in data:
-            value = data[pascal_case(property_key)]
-            handled_fields.add(pascal_case(property_key))
-            property_value = parser_function(value)
+        # Look up value in data (using pre-computed keys for auto_snake)
+        if field_meta.key in data:
+            value = data[field_meta.key]
+            handled_fields.add(field_meta.key)
+            property_value = field_meta.parser(value)
+        elif metadata.auto_snake and field_meta.camel_key and field_meta.camel_key in data:
+            value = data[field_meta.camel_key]
+            handled_fields.add(field_meta.camel_key)
+            property_value = field_meta.parser(value)
+        elif metadata.auto_snake and field_meta.pascal_key and field_meta.pascal_key in data:
+            value = data[field_meta.pascal_key]
+            handled_fields.add(field_meta.pascal_key)
+            property_value = field_meta.parser(value)
         else:
-            if _has_default(class_reference, attribute_name):
-                deserialized_value = _get_default(class_reference, attribute_name)
+            # Value not in data - check for default or None
+            if field_meta.has_default:
+                deserialized_value = field_meta.default_value
                 using_default = True
             else:
-                if not is_union(attribute_type) or type(None) not in union_types(
-                    attribute_type, debug_name
-                ):
+                # Check if None is acceptable (Union with None)
+                if not field_meta.is_union or type(None) not in field_meta.union_types:
                     raise DeserializeException(
                         f"Unexpected missing value for: {debug_name}.{attribute_name}"
                     )
-                property_value = parser_function(None)
+                property_value = field_meta.parser(None)
 
         if not using_default:
             deserialized_value = _deserialize(
-                attribute_type,
+                field_meta.type,
                 property_value,
                 f"{debug_name}.{attribute_name}",
                 throw_on_unhandled=throw_on_unhandled,
