@@ -1,7 +1,7 @@
 """Class metadata caching for performance optimization."""
 
 import typing
-from typing import Any, Dict
+from typing import Any, Dict, get_type_hints, get_args, get_origin, Annotated
 
 from deserialize.decorators import (
     _get_key,
@@ -23,6 +23,27 @@ from deserialize.type_checks import (
     dict_content_types,
 )
 from deserialize.conversions import camel_case, pascal_case
+from deserialize.field import Field
+
+
+def _extract_field_config(field_type: Any) -> tuple[Any, Field | None]:
+    """Extract Field configuration from Annotated type hint.
+
+    :param field_type: The type hint to inspect
+    :returns: Tuple of (actual_type, field_config or None)
+    """
+    if get_origin(field_type) is Annotated:
+        args = get_args(field_type)
+        actual_type = args[0]  # First arg is the actual type
+
+        # Look for Field in metadata
+        for meta in args[1:]:
+            if isinstance(meta, Field):
+                return actual_type, meta
+
+        return actual_type, None
+
+    return field_type, None
 
 
 class FieldMetadata:
@@ -56,20 +77,32 @@ class FieldMetadata:
         auto_snake: bool,
     ):
         self.name = name
-        self.type = field_type
 
-        # Decorator metadata
-        self.key = _get_key(class_reference, name)
-        self.parser = _get_parser(class_reference, self.key)
-        self.has_default = _has_default(class_reference, name)
-        self.default_value = _get_default(class_reference, name) if self.has_default else None
-        self.ignore = _should_ignore(class_reference, name)
+        # Extract Field configuration from Annotated if present
+        actual_type, field_config = _extract_field_config(field_type)
+        self.type = actual_type
 
-        # Type classification
-        self.is_classvar = is_classvar(field_type)
-        self.is_union = is_union(field_type)
-        self.is_list = is_list(field_type)
-        self.is_dict = is_dict(field_type)
+        # If Field is provided, it takes precedence over decorators
+        if field_config:
+            # Use Field configuration
+            self.key = field_config.alias or name
+            self.parser = field_config.parser or (lambda x: x)
+            self.has_default = field_config.has_default()
+            self.default_value = field_config.default if field_config.has_default() else None
+            self.ignore = field_config.ignore
+        else:
+            # Fall back to decorator-based metadata
+            self.key = _get_key(class_reference, name)
+            self.parser = _get_parser(class_reference, self.key)
+            self.has_default = _has_default(class_reference, name)
+            self.default_value = _get_default(class_reference, name) if self.has_default else None
+            self.ignore = _should_ignore(class_reference, name)
+
+        # Type classification (use actual type, not Annotated wrapper)
+        self.is_classvar = is_classvar(self.type)
+        self.is_union = is_union(self.type)
+        self.is_list = is_list(self.type)
+        self.is_dict = is_dict(self.type)
 
         # Pre-computed type info
         self.union_types = None
@@ -79,15 +112,15 @@ class FieldMetadata:
 
         if self.is_union:
             # Cache union types to avoid repeated get_args() calls
-            self.union_types = union_types(field_type, f"metadata_{name}")
+            self.union_types = union_types(self.type, f"metadata_{name}")
 
         if self.is_list:
             # Cache list content type
-            self.list_type = list_content_type(field_type, f"metadata_{name}")
+            self.list_type = list_content_type(self.type, f"metadata_{name}")
 
         if self.is_dict:
             # Cache dict types
-            dict_types = dict_content_types(field_type, f"metadata_{name}")
+            dict_types = dict_content_types(self.type, f"metadata_{name}")
             if dict_types:
                 self.dict_key_type, self.dict_value_type = dict_types
 
@@ -114,8 +147,8 @@ class ClassMetadata:
     def __init__(self, class_reference: Any):
         self.class_reference = class_reference
 
-        # Get type hints once
-        self.hints = typing.get_type_hints(class_reference)
+        # Get type hints once (include_extras=True to preserve Annotated metadata)
+        self.hints = typing.get_type_hints(class_reference, include_extras=True)
 
         # Class-level decorators
         self.auto_snake = _uses_auto_snake(class_reference)

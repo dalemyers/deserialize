@@ -232,6 +232,7 @@ def test_clear_class_cache() -> None:
 
 def test_metadata_cache_improves_performance() -> None:
     """Test that caching actually improves performance."""
+
     class PerfTestClass:
         """Class for performance testing."""
 

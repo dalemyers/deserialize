@@ -8,7 +8,7 @@
 import enum
 import inspect
 import typing
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Annotated
 
 from deserialize.conversions import camel_case, pascal_case
 from deserialize.custom_deserializable import CustomDeserializable
@@ -37,6 +37,7 @@ from deserialize.exceptions import (
 from deserialize.raw_storage_mode import RawStorageMode
 from deserialize.type_checks import *
 from deserialize.metadata_cache import get_class_metadata
+from deserialize.field import Field
 
 
 # pylint: disable=function-redefined
