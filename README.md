@@ -94,6 +94,40 @@ class TVShow:
 
 ## Advanced Usage
 
+### Field-based Configuration (Alternative to Decorators)
+
+As an alternative to decorators, you can use `Field` with `Annotated` type hints to configure field behavior. This provides a more modern, Pythonic approach that's familiar to users of libraries like Pydantic and FastAPI.
+
+```python
+from typing import Annotated
+from deserialize import deserialize, Field
+
+class User:
+    user_id: Annotated[int, Field(alias="userId")]
+    email: Annotated[str, Field(alias="emailAddress")]
+    is_active: Annotated[bool, Field(default=True)]
+
+data = {"userId": 123, "emailAddress": "user@example.com"}
+user = deserialize(User, data)
+# user.user_id = 123
+# user.email = "user@example.com"  
+# user.is_active = True (from default)
+```
+
+`Field` supports the following options:
+- `alias`: Alternative key name in source data (replaces `@key`)
+- `default`: Default value if field is missing (replaces `@default`)
+- `parser`: Function to transform the value (replaces `@parser`)
+- `ignore`: Skip this field during deserialization (replaces `@ignore`)
+
+**Benefits of Field over decorators:**
+- Configuration is co-located with the field definition
+- Better IDE autocomplete and type checking
+- More familiar to users of modern Python libraries
+- Easier to read - all field info in one place
+
+**Note:** `Field` and decorators can coexist. If both are present for a field, `Field` takes precedence. This allows gradual migration from decorators to `Field`.
+
 ### Custom Keys
 
 It may be that you want to name your properties in your object something different to what is in the data. This can be for readability reasons, or because you have to (such as if your data item is named `__class__`). This can be handled too. Simply use the `key` annotation as follows:
