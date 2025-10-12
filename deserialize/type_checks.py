@@ -12,27 +12,6 @@ import deserialize.exceptions
 def is_typing_type(class_reference):
     """Check if the supplied type is one defined by the `typing` module."""
 
-    if sys.version_info < (3, 7):
-        # Union/Optional is a special case since it doesn't inherit.
-
-        # Not everything has the __origin__ member
-        if hasattr(class_reference, "__origin__"):
-            if class_reference.__origin__ == typing.Union:
-                return True
-
-        # pylint: disable=no-member
-        if isinstance(class_reference, typing._TypeAlias):
-            return True
-
-        if isinstance(class_reference, typing.GenericMeta):
-            return True
-
-        return class_reference.__module__ == "typing"
-        # pylint: enable=no-member
-
-    if sys.version_info < (3, 8):
-        return isinstance(class_reference, typing._GenericAlias)
-
     return typing.get_origin(class_reference) is not None
 
 
@@ -41,12 +20,6 @@ def is_union(type_value):
 
     if not is_typing_type(type_value):
         return False
-
-    if sys.version_info < (3, 8):
-        return type_value.__origin__ == typing.Union
-
-    if sys.version_info < (3, 10):
-        return typing.get_origin(type_value) == typing.Union
 
     return typing.get_origin(type_value) in [typing.Union, types.UnionType]
 
@@ -58,9 +31,6 @@ def union_types(type_value, debug_name):
             f"Cannot extract union types from non-union type: {type_value} for {debug_name}"
         )
 
-    if sys.version_info < (3, 8):
-        return set(type_value.__args__)
-
     return set(typing.get_args(type_value))
 
 
@@ -69,14 +39,6 @@ def is_classvar(type_value):
 
     if not is_typing_type(type_value):
         return False
-
-    if sys.version_info < (3, 7):
-        # pylint: disable=unidiomatic-typecheck
-        return type(type_value) == type(typing.ClassVar)
-        # pylint: enable=unidiomatic-typecheck
-
-    if sys.version_info < (3, 8):
-        return type_value.__origin__ == typing.ClassVar
 
     return typing.get_origin(type_value) == typing.ClassVar
 
@@ -93,12 +55,6 @@ def is_list(type_value):
     if not hasattr(type_value, "__origin__"):
         return False
 
-    if sys.version_info < (3, 7):
-        return type_value.__origin__ == typing.List
-
-    if sys.version_info < (3, 8):
-        return type_value.__origin__ == list
-
     return typing.get_origin(type_value) == list
 
 
@@ -110,9 +66,6 @@ def list_content_type(type_value, debug_name):
 
     if not is_list(type_value):
         raise TypeError(f"{type_value} is not a List type for {debug_name}")
-
-    if sys.version_info < (3, 8):
-        return type_value.__args__[0]
 
     args = typing.get_args(type_value)
 
@@ -137,12 +90,6 @@ def is_dict(type_value):
     if not hasattr(type_value, "__origin__"):
         return False
 
-    if sys.version_info < (3, 7):
-        return type_value.__origin__ == typing.Dict
-
-    if sys.version_info < (3, 8):
-        return type_value.__origin__ == dict
-
     return typing.get_origin(type_value) == dict
 
 
@@ -154,8 +101,5 @@ def dict_content_types(type_value, debug_name):
 
     if not is_dict(type_value):
         raise TypeError(f"{type_value} is not a Dict type for {debug_name}")
-
-    if sys.version_info < (3, 8):
-        return type_value.__args__[0], type_value.__args__[1]
 
     return typing.get_args(type_value)
