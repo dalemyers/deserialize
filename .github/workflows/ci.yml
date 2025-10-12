@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 8
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: x64
+    
+    - name: Install Poetry
+      run: curl -sSL https://install.python-poetry.org | python3 -
+    
+    - name: Add Poetry to PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Create virtual environment
+      run: python -m venv ${{ github.workspace }}/venv
+    
+    - name: Install dependencies
+      run: |
+        source ${{ github.workspace }}/venv/bin/activate
+        poetry install
+    
+    - name: Run Black
+      run: |
+        source venv/bin/activate
+        python -m black --line-length 100 deserialize tests
+    
+    - name: Lint
+      run: |
+        source venv/bin/activate
+        python -m pylint --rcfile=pylintrc deserialize
+    
+    - name: Type Check
+      run: |
+        source venv/bin/activate
+        python -m mypy --ignore-missing-imports deserialize/
+    
+    - name: Run pytest
+      run: |
+        source venv/bin/activate
+        python -m pytest tests --cov=deserialize --cov-report html --cov-report xml --doctest-modules --junitxml=junit/test-results.xml
+    
+    - name: Inline CSS
+      run: |
+        source venv/bin/activate
+        python inlinecss.py htmlcov
+    
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: junit/test-results.xml
+        check_name: Test Results (Python ${{ matrix.python-version }})
+    
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: python-${{ matrix.python-version }}
+        name: codecov-python-${{ matrix.python-version }}
+    
+    - name: Upload HTML Coverage Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report-${{ matrix.python-version }}
+        path: htmlcov/
