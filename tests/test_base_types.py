@@ -3,7 +3,7 @@
 import datetime
 import os
 import sys
-from typing import Callable, List, Optional
+from typing import Callable
 
 import pytest
 
@@ -47,7 +47,7 @@ def test_lists() -> None:
 
     data = [{"field": 1}]
 
-    instances = deserialize(List[Item], data)
+    instances = deserialize(list[Item], data)
 
     assert len(instances) == 1
     assert instances[0].field == data[0]["field"]
@@ -58,7 +58,7 @@ def test_list_of_lists() -> None:
 
     data = [[{"field": 1}]]
 
-    instances = deserialize(List[List[Item]], data)
+    instances = deserialize(list[list[Item]], data)
 
     assert len(instances) == 1
     assert len(instances[0]) == 1
@@ -70,7 +70,7 @@ def test_list_of_optionals() -> None:
 
     data = [1, None, 3, None, 5, None]
 
-    instances = deserialize(List[Optional[int]], data)
+    instances = deserialize(list[int | None], data)
 
     assert instances == data
 
@@ -80,7 +80,7 @@ def test_base_type_lists() -> None:
 
     data = [1, 2, 3]
 
-    parsed = deserialize(List[int], data)
+    parsed = deserialize(list[int], data)
     assert data == parsed
 
 

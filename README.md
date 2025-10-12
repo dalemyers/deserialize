@@ -62,11 +62,9 @@ That's it. It will pull out all the data and set it for you type checking and ev
 If you want null values to be allowed though, that's easy too:
 
 ```python
-from typing import Optional
-
 class MyThing:
-    a: Optional[int]
-    b: Optional[int]
+    a: int | None
+    b: int | None
 ```
 
 Now `None` is a valid value for these.
@@ -81,20 +79,20 @@ class Actor:
 class Episode:
     title: str
     identifier: st
-    actors: List[Actor]
+    actors: list[Actor]
 
 class Season:
-    episodes: List[Episode]
+    episodes: list[Episode]
     completed: bool
 
 class TVShow:
-    seasons: List[Season]
+    seasons: list[Season]
     creator: str
 ```
 
 ## Advanced Usage
 
-### Field-based Configuration (Alternative to Decorators)
+### Field-based Configuration
 
 As an alternative to decorators, you can use `Field` with `Annotated` type hints to configure field behavior. This provides a more modern, Pythonic approach that's familiar to users of libraries like Pydantic and FastAPI.
 
@@ -212,7 +210,7 @@ class Result:
 
 This will now detect when handling the data for the _key_ `timestamp` and run it through the parser function supplied before assigning it to your new class instance.
 
-The parser is run _before_ type checking is done. This means that if you had something like `Optional[datetime.datetime]`, you should ensure your parser can handle the value being `None`. Your parser will obviously need to return the type that you have declared on the property in order to work.
+The parser is run _before_ type checking is done. This means that if you had something like `datetime.datetime | None`, you should ensure your parser can handle the value being `None`. Your parser will obviously need to return the type that you have declared on the property in order to work.
 
 
 ### Subclassing
@@ -301,7 +299,7 @@ class Bar(MyBase):
     bar_prop: str
 
 
-result = deserialize.deserialize(List[MyBase], data)
+result = deserialize.deserialize(list[MyBase], data)
 ```
 
 Here, `result[0]` will be an instance of `Foo` and `result[1]` will be an instance of `Bar`.

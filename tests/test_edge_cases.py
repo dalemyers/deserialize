@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, ClassVar, Dict, List, Optional, Union
+from typing import Any, ClassVar, Union
 
 import pytest
 
@@ -33,7 +33,7 @@ def test_parser_with_none_optional() -> None:
     class WithOptionalParser:
         """Class with parser on optional field."""
 
-        optional_int: Optional[int]
+        optional_int: int | None
 
     # Test with None
     data1 = {"optional_int": None}
@@ -74,7 +74,7 @@ def test_default_with_none_value() -> None:
         """Class with None as default."""
 
         required_field: int
-        optional_field: Optional[str]
+        optional_field: str | None
 
     data = {"required_field": 42}
     instance = deserialize(WithNoneDefault, data)
@@ -153,7 +153,7 @@ def test_dict_with_int_keys() -> None:
     class IntKeyDict:
         """Class with int-keyed dict."""
 
-        data: Dict[int, str]
+        data: dict[int, str]
 
     valid_data = {"data": {1: "one", 2: "two", 3: "three"}}
     instance = deserialize(IntKeyDict, valid_data)
@@ -169,7 +169,7 @@ def test_dict_with_wrong_key_type() -> None:
     class IntKeyDict:
         """Class with int-keyed dict."""
 
-        data: Dict[int, str]
+        data: dict[int, str]
 
     # String keys when int expected
     invalid_data = {"data": {"one": "1", "two": "2"}}
@@ -212,9 +212,9 @@ def test_empty_list_typed() -> None:
     class WithEmptyList:
         """Class with list field."""
 
-        items: List[int]
+        items: list[int]
 
-    data: Dict[str, List[int]] = {"items": []}
+    data: dict[str, list[int]] = {"items": []}
     instance = deserialize(WithEmptyList, data)
 
     assert instance.items == []
@@ -227,9 +227,9 @@ def test_empty_dict_typed() -> None:
     class WithEmptyDict:
         """Class with dict field."""
 
-        mapping: Dict[str, int]
+        mapping: dict[str, int]
 
-    data: Dict[str, Dict[str, int]] = {"mapping": {}}
+    data: dict[str, dict[str, int]] = {"mapping": {}}
     instance = deserialize(WithEmptyDict, data)
 
     assert instance.mapping == {}
@@ -263,7 +263,7 @@ def test_any_type_accepts_everything() -> None:
 
         anything: Any
 
-    test_values: List[Dict[str, Any]] = [
+    test_values: list[dict[str, Any]] = [
         {"anything": 42},
         {"anything": "string"},
         {"anything": [1, 2, 3]},
@@ -287,7 +287,7 @@ def test_classvar_cannot_be_set() -> None:
         instance_value: int
 
     # Data that tries to set the ClassVar
-    data: Dict[str, int] = {"class_value": 100, "instance_value": 1}
+    data: dict[str, int] = {"class_value": 100, "instance_value": 1}
 
     with pytest.raises(DeserializeException) as exc_info:
         deserialize(WithClassVar, data)

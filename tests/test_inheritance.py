@@ -2,7 +2,6 @@
 
 import os
 import sys
-from typing import List, Optional
 
 import pytest
 
@@ -115,7 +114,7 @@ def test_type_hints_inheritance() -> None:
         """Child class with additional type hints."""
 
         child_float: float
-        child_list: List[int]
+        child_list: list[int]
 
     data = {
         "base_int": 42,
@@ -258,7 +257,7 @@ def test_optional_fields_inheritance() -> None:
         """Base class with optional field."""
 
         required: int
-        optional: Optional[str]
+        optional: str | None
 
     class ChildClass(BaseClass):
         """Child class."""

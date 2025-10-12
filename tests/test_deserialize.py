@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 import pytest
 
@@ -47,7 +47,7 @@ class MultiPropertySimpleType:
 class SinglePropertyComplexType:
     """Test class with a single property of a complex type."""
 
-    my_list: List[int]
+    my_list: list[int]
 
     def __str__(self):
         return str([str(item) for item in self.my_list])
@@ -57,11 +57,11 @@ class ComplexNestedType:
     """Test class with complex nested information."""
 
     one: int
-    two: Optional[str]
+    two: str | None
     three: SinglePropertySimpleType
     four: MultiPropertySimpleType
-    five: Optional[SinglePropertySimpleType]
-    six: List[SinglePropertyComplexType]
+    five: SinglePropertySimpleType | None
+    six: list[SinglePropertyComplexType]
 
     def __str__(self):
         return str(
@@ -87,15 +87,15 @@ class TypeWithDict:
     """Test a class that has a dict embedded."""
 
     value: int
-    dict_value: Dict[str, int]
+    dict_value: dict[str, int]
 
 
 class TypeWithComplexDict:
     """Test a class that has a complex dict embedded."""
 
     value: int
-    dict_value: Dict[str, TypeWithDict]
-    any_dict_value: Dict[str, Any]
+    dict_value: dict[str, TypeWithDict]
+    any_dict_value: dict[str, Any]
 
 
 class TypeWithUnion:

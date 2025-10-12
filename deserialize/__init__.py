@@ -8,7 +8,7 @@
 import enum
 import inspect
 import typing
-from typing import Any, Dict, Optional, Annotated
+from typing import Any, Annotated
 
 from deserialize.conversions import camel_case, pascal_case
 from deserialize.custom_deserializable import CustomDeserializable
@@ -93,7 +93,7 @@ def _deserialize(
     # then handle collection data, then any other types afterwards. That's not
     # set in stone though.
 
-    def finalize(value: Optional[Any]) -> Optional[Any]:
+    def finalize(value: Any | None) -> Any | None:
         """Run through any finalization steps before returning the value."""
 
         # Set raw data where applicable
@@ -112,7 +112,7 @@ def _deserialize(
         # deserialize method on it
         return finalize(class_reference.deserialize(data))
 
-    # Check if it's None (since things like Union[int, Optional[str]] become
+    # Check if it's None (since things like Union[int, str | None] become
     # Union[int, str, None] so we end up iterating against it)
     if class_reference == type(None) and data is None:
         return finalize(None)
@@ -304,7 +304,7 @@ def _deserialize_dict(
         if new_reference is None:
             if metadata.allows_downcast_fallback:
                 return _deserialize(
-                    Dict[Any, Any],
+                    dict[Any, Any],
                     data,
                     debug_name,
                     throw_on_unhandled=throw_on_unhandled,
@@ -376,11 +376,12 @@ def _deserialize_dict(
                 using_default = True
             else:
                 # Check if None is acceptable (Union with None)
-                if not field_meta.is_union or type(None) not in field_meta.union_types:
+                if field_meta.is_union and field_meta.union_types and type(None) in field_meta.union_types:
+                    property_value = field_meta.parser(None)
+                else:
                     raise DeserializeException(
                         f"Unexpected missing value for: {debug_name}.{attribute_name}"
                     )
-                property_value = field_meta.parser(None)
 
         if not using_default:
             deserialized_value = _deserialize(

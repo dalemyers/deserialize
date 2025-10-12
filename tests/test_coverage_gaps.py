@@ -1,7 +1,6 @@
 """Tests to cover missing code coverage gaps."""
 
 import pytest
-from typing import List, Optional
 
 from deserialize import deserialize, default, key, downcast_field, downcast_identifier
 from deserialize.decorators.default import _get_default
@@ -63,7 +62,7 @@ def test_deserialize_non_list_as_list():
     # This tests line 217 in __init__.py - checking if list_data is actually a list
 
     class Container:
-        items: List[int]
+        items: list[int]
 
     with pytest.raises(DeserializeException) as exc_info:
         deserialize(Container, {"items": "not_a_list"})
@@ -209,14 +208,14 @@ def test_deserialize_list_with_type_errors():
     data = [{"value": 1}, {"value": "invalid"}]
 
     with pytest.raises(DeserializeException):
-        deserialize(List[StrictType], data)
+        deserialize(list[StrictType], data)
 
 
 def test_deserialize_optional_with_none():
     """Test deserializing Optional type with None value."""
 
     class Container:
-        maybe_value: Optional[int]
+        maybe_value: int | None
 
     result = deserialize(Container, {"maybe_value": None})
     assert result.maybe_value is None
@@ -295,7 +294,7 @@ def test_default_with_none_value():
 
     @default("value", None)
     class NoneDefaultClass:
-        value: Optional[int]
+        value: int | None
 
     result = deserialize(NoneDefaultClass, {})
     assert result.value is None
@@ -311,11 +310,11 @@ def test_complex_nested_structure():
     class Person:
         name: str
         address: Address
-        tags: List[str]
+        tags: list[str]
 
     class Company:
         name: str
-        employees: List[Person]
+        employees: list[Person]
 
     data = {
         "name": "TechCorp",
@@ -367,13 +366,12 @@ def test_throw_on_unhandled_for_dict_type():
     """Test throw_on_unhandled with Dict type deserialization."""
     # This tests line 287 in __init__.py - throw_on_unhandled for Dict types
 
-    from typing import Dict
-
+    
     data = {"key1": "value1", "key2": "value2", "extra": "value3"}
 
-    # When deserializing to Dict[str, str], all keys should be handled
+    # When deserializing to dict[str, str], all keys should be handled
     # But let's try with a constrained dict
-    result = deserialize(Dict[str, str], data, throw_on_unhandled=True)
+    result = deserialize(dict[str, str], data, throw_on_unhandled=True)
     assert result == data  # Should work fine, all handled
 
 
@@ -381,11 +379,10 @@ def test_typing_type_with_none_data():
     """Test deserialization of typing type (non-Optional) with None data."""
     # This tests line 188 in __init__.py - typing type with None data
 
-    from typing import List
-
+    
     class Container:
         # Non-optional List field
-        items: List[int]
+        items: list[int]
 
     # Pass None for a non-optional field
     with pytest.raises(DeserializeException) as exc_info:

@@ -3,7 +3,6 @@
 import copy
 import os
 import sys
-from typing import List
 
 import pytest
 
@@ -123,7 +122,7 @@ def test_downcasting_nested() -> None:
         {"type_name": "bar", "two": 2, "hello": "world"},
     ]
 
-    results = deserialize(List[DowncastableBase], data)
+    results = deserialize(list[DowncastableBase], data)
     foo = results[0]
     bar = results[1]
 
@@ -158,7 +157,7 @@ def test_downcasting_fallback() -> None:
         {"type_name": "bar", "some_data": 42},
     ]
 
-    results = deserialize(List[MyBase], data)
+    results = deserialize(list[MyBase], data)
     foo = results[0]
     bar = results[1]
 

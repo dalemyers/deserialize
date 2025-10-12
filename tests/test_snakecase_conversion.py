@@ -2,7 +2,6 @@
 
 import os
 import sys
-from typing import List
 
 import pytest
 
@@ -21,7 +20,7 @@ def test_snake_case_from_camel() -> None:
         """Sample item for use in tests."""
 
         int_field: int
-        some_values: List[int]
+        some_values: list[int]
 
     instance = deserialize(
         SnakeCaseItem,
@@ -39,7 +38,7 @@ def test_snake_case_from_pascal() -> None:
         """Sample item for use in tests."""
 
         int_field: int
-        some_values: List[int]
+        some_values: list[int]
 
     instance = deserialize(
         SnakeCaseItem,
@@ -57,7 +56,7 @@ def test_snake_case_non_snake_property() -> None:
         """Sample item for use in tests."""
 
         intField: int
-        some_values: List[int]
+        some_values: list[int]
 
     with pytest.raises(DeserializeException):
         _ = deserialize(
@@ -73,7 +72,7 @@ def test_non_snake_case() -> None:
         """Sample item for use in tests."""
 
         int_field: int
-        some_values: List[int]
+        some_values: list[int]
 
     with pytest.raises(DeserializeException):
         _ = deserialize(
@@ -90,7 +89,7 @@ def test_nested_snake_case() -> None:
         """Sample item for use in tests."""
 
         int_field: int
-        some_values: List[int]
+        some_values: list[int]
 
     class NonSnakeCaseItem:
         """Sample item for use in tests."""
@@ -112,7 +111,7 @@ def test_nested_snake_case_failure() -> None:
         """Sample item for use in tests."""
 
         int_field: int
-        some_values: List[int]
+        some_values: list[int]
 
     class NonSnakeCaseItem:
         """Sample item for use in tests."""

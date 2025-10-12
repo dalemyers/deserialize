@@ -3,7 +3,7 @@
 import os
 import sys
 import time
-from typing import Dict, List, Optional, Union
+from typing import Union
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -140,10 +140,10 @@ def test_field_metadata_type_classification() -> None:
         """Class for testing type classification."""
 
         plain: int
-        optional: Optional[str]
+        optional: str | None
         union: Union[int, str]
-        list_field: List[int]
-        dict_field: Dict[str, int]
+        list_field: list[int]
+        dict_field: dict[str, int]
 
     metadata = get_class_metadata(TypeTestClass)
 
@@ -240,7 +240,7 @@ def test_metadata_cache_improves_performance() -> None:
         field2: str
         field3: float
         field4: bool
-        field5: List[int]
+        field5: list[int]
 
     # Clear cache
     clear_class_cache(PerfTestClass)

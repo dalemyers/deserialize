@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, Optional, Tuple, Type, Union
+from typing import Any, Type, Union
 
 import pytest
 
@@ -24,7 +24,7 @@ class SomeUnionClassOld:
 
     one: Union[str, int]
     two: Union[int, str]
-    three: Union[int, Optional[str]]
+    three: Union[int, str | None]
 
 
 class BasicUnionClassNew:
@@ -74,7 +74,7 @@ def test_union_simple(union_class: Type):
         (BasicUnionClassNew, SomeUnionClassNew),
     ],
 )
-def test_union(union_classes: Tuple[Type, Type]):
+def test_union(union_classes: tuple[Type, Type]):
     """Test that items with union properties deserializes."""
 
     basic_union_class, some_union_class = union_classes

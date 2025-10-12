@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, List
+from typing import Any
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -23,20 +23,20 @@ class Episode:
 
     title: str
     identifier: str
-    actors: List[Actor]
+    actors: list[Actor]
 
 
 class Season:
     """Represents a season."""
 
-    episodes: List[Episode]
+    episodes: list[Episode]
     completed: bool
 
 
 class TVShow:
     """Represents a TV show."""
 
-    seasons: List[Season]
+    seasons: list[Season]
     creator: str
 
 

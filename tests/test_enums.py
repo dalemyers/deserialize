@@ -3,7 +3,7 @@
 import enum
 import os
 import sys
-from typing import Any, List, Optional
+from typing import Any
 
 import pytest
 
@@ -35,7 +35,7 @@ class SomeClass:
 
     my_value: int
     my_enum: SomeStringEnum
-    my_optional_enum: Optional[SomeIntEnum]
+    my_optional_enum: SomeIntEnum | None
 
 
 def test_enums_simple() -> None:
@@ -90,7 +90,7 @@ def test_enums_order() -> None:
         data = test_case[0]
         expected_result = test_case[1]
 
-        result = deserialize(List[OrderTest], data)
+        result = deserialize(list[OrderTest], data)
 
         assert len(result) == len(data) == len(expected_result)
         assert result == expected_result

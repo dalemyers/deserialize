@@ -3,7 +3,7 @@
 import datetime
 import os
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -57,15 +57,15 @@ def test_complex_api_response() -> None:
         email: str
         created_at: datetime.datetime
         is_active: bool
-        user_metadata: Optional[Dict[str, Any]]
+        user_metadata: dict[str, Any] | None
 
     class ApiResponse:
         """Complete API response."""
 
         success: bool
         user: User
-        recent_events: List[Event]
-        metadata: Dict[str, str]
+        recent_events: list[Event]
+        metadata: dict[str, str]
 
     # Complex test data
     data = {
@@ -154,7 +154,7 @@ def test_complex_ecommerce_scenario() -> None:
 
         order_number: str
         order_date: datetime.datetime
-        items: List[OrderItem]
+        items: list[OrderItem]
         customer_id: int
         status: str
         shipping_cost: float
@@ -199,8 +199,8 @@ def test_nested_unions_and_optionals() -> None:
     class Config:
         """Config with complex nested types."""
 
-        settings: Dict[str, Union[str, int, StringValue, IntValue]]
-        optional_nested: Optional[List[Optional[Dict[str, Union[str, int]]]]]
+        settings: dict[str, Union[str, int, StringValue, IntValue]]
+        optional_nested: list[dict[str, Union[str, int]] | None] | None
 
     data = {
         "settings": {

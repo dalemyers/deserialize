@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Dict, List, Union
+from typing import Union
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -106,7 +106,7 @@ def test_raw_storage_with_lists() -> None:
     class Container:
         """Container with list."""
 
-        items: List[Item]
+        items: list[Item]
 
     data = {"items": [{"value": 1}, {"value": 2}, {"value": 3}]}
 
@@ -196,7 +196,7 @@ def test_raw_storage_with_dict_values() -> None:
     class WithDict:
         """Class with dict of objects."""
 
-        mapping: Dict[str, Value]
+        mapping: dict[str, Value]
 
     data = {"mapping": {"key1": {"data": 1}, "key2": {"data": 2}}}
 

@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -26,7 +26,7 @@ class SampleOptionalItem:
     """Sample item for use in tests."""
 
     one: int
-    two: Optional[str]
+    two: str | None
 
 
 def test_default() -> None:

@@ -2,7 +2,6 @@
 
 import os
 import sys
-from typing import List, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -47,7 +46,7 @@ def test_field_default_none() -> None:
     class Data:
         """Test data class."""
 
-        value: Annotated[Optional[str], Field(default=None)]
+        value: Annotated[str | None, Field(default=None)]
 
     data: dict[str, str] = {}
     result = deserialize(Data, data)
@@ -130,7 +129,7 @@ def test_field_with_list() -> None:
 
     class Order:
         order_id: Annotated[int, Field(alias="orderId")]
-        items: Annotated[List[Item], Field(alias="orderItems")]
+        items: Annotated[list[Item], Field(alias="orderItems")]
 
     data = {"orderId": 789, "orderItems": [{"id": 1}, {"id": 2}]}
 
@@ -203,7 +202,7 @@ def test_field_with_optional() -> None:
 
     class Data:
         required: Annotated[str, Field(alias="req")]
-        optional: Annotated[Optional[int], Field(alias="opt")]
+        optional: Annotated[int | None, Field(alias="opt")]
 
     data = {"req": "test", "opt": None}
     result = deserialize(Data, data)

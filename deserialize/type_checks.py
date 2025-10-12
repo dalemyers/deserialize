@@ -1,6 +1,5 @@
 """Convenience checks for typing."""
 
-import sys
 import typing
 import types
 
@@ -59,13 +58,13 @@ def is_list(type_value):
 
 
 def list_content_type(type_value, debug_name):
-    """Strip the List wrapper from a type.
+    """Strip the list wrapper from a type.
 
-    e.g. List[int] -> int
+    e.g. list[int] -> int
     """
 
     if not is_list(type_value):
-        raise TypeError(f"{type_value} is not a List type for {debug_name}")
+        raise TypeError(f"{type_value} is not a list type for {debug_name}")
 
     args = typing.get_args(type_value)
 
@@ -94,12 +93,12 @@ def is_dict(type_value):
 
 
 def dict_content_types(type_value, debug_name):
-    """Return the content types for a dictionay.
+    """Return the content types for a dictionary.
 
-    e.g. Dict[str, int] -> (str, int)
+    e.g. dict[str, int] -> (str, int)
     """
 
     if not is_dict(type_value):
-        raise TypeError(f"{type_value} is not a Dict type for {debug_name}")
+        raise TypeError(f"{type_value} is not a dict type for {debug_name}")
 
     return typing.get_args(type_value)

@@ -1,6 +1,6 @@
 """Field configuration for type-hint based deserialization."""
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 
 # Sentinel value to indicate no default was provided
@@ -33,9 +33,9 @@ class Field:
     def __init__(
         self,
         *,
-        alias: Optional[str] = None,
+        alias: str | None = None,
         default: Any = _MISSING,
-        parser: Optional[Callable] = None,
+        parser: Callable | None = None,
         ignore: bool = False,
     ):
         self.alias = alias

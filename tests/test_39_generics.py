@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 
@@ -16,7 +16,7 @@ from deserialize import deserialize
 class ListClass:
     """Basic union example."""
 
-    one: List[int]
+    one: list[int]
     two: list[int]
     three: list
 
@@ -24,7 +24,7 @@ class ListClass:
 class DictClass:
     """Basic union example."""
 
-    one: Dict[int, int]
+    one: dict[int, int]
     two: dict[int, int]
     three: dict
 
@@ -33,7 +33,7 @@ class DictClass:
     "value",
     [{"one": [1, 2, 3], "two": [1, 2, 3], "three": [1, 2, 3]}],
 )
-def test_lists(value: Dict[str, Any]):
+def test_lists(value: dict[str, Any]):
     """Test that items with a simple union property deserializes."""
 
     instance = deserialize(ListClass, value)
@@ -52,7 +52,7 @@ def test_lists(value: Dict[str, Any]):
         }
     ],
 )
-def test_dicts(value: Dict[str, Any]):
+def test_dicts(value: dict[str, Any]):
     """Test that items with a simple union property deserializes."""
 
     instance = deserialize(DictClass, value)

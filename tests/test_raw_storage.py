@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, List
+from typing import Any
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -22,7 +22,7 @@ class BiggerStorageClass:
 
     one: int
     two: SimpleStorageClass
-    three: List[str]
+    three: list[str]
 
 
 def test_root_simple() -> None:

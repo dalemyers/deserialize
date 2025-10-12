@@ -1,7 +1,7 @@
 """Class metadata caching for performance optimization."""
 
 import typing
-from typing import Any, Dict, get_type_hints, get_args, get_origin, Annotated
+from typing import Any, get_args, get_origin, Annotated
 
 from deserialize.decorators import (
     _get_key,
@@ -156,7 +156,7 @@ class ClassMetadata:
         self.allows_downcast_fallback = _allows_downcast_fallback(class_reference)
 
         # Build field metadata
-        self.fields: Dict[str, FieldMetadata] = {}
+        self.fields: dict[str, FieldMetadata] = {}
         for attr_name, attr_type in self.hints.items():
             self.fields[attr_name] = FieldMetadata(
                 attr_name, attr_type, class_reference, self.auto_snake

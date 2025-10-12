@@ -3,7 +3,6 @@
 import datetime
 import os
 import sys
-from typing import List
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -20,7 +19,7 @@ class SampleItem:
 
     int_field: int
     datetime_field: datetime.datetime
-    some_values: List[int]
+    some_values: list[int]
 
 
 def test_parser() -> None:

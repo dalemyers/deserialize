@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any, Optional
+from typing import Any
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -16,7 +16,7 @@ class BasicConstructor:
 
     one: int
     two: int
-    three: Optional[int]
+    three: int | None
 
     def __init__(self, one: int, two: int) -> None:
         self.one = one
