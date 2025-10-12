@@ -78,7 +78,7 @@ class Actor:
 
 class Episode:
     title: str
-    identifier: st
+    identifier: str
     actors: list[Actor]
 
 class Season:
@@ -92,13 +92,12 @@ class TVShow:
 
 ## Advanced Usage
 
-### Field-based Configuration
+### Field Configuration with Annotated
 
-As an alternative to decorators, you can use `Field` with `Annotated` type hints to configure field behavior. This provides a more modern, Pythonic approach that's familiar to users of libraries like Pydantic and FastAPI.
+You can use `Field` with `Annotated` type hints to configure field behavior. This is the **recommended approach** as it provides a modern, Pythonic API that's familiar to users of libraries like Pydantic and FastAPI.
 
 ```python
-from typing import Annotated
-from deserialize import deserialize, Field
+from deserialize import Annotated, deserialize, Field
 
 class User:
     user_id: Annotated[int, Field(alias="userId")]
@@ -113,126 +112,167 @@ user = deserialize(User, data)
 ```
 
 `Field` supports the following options:
-- `alias`: Alternative key name in source data (replaces `@key`)
-- `default`: Default value if field is missing (replaces `@default`)
-- `parser`: Function to transform the value (replaces `@parser`)
-- `ignore`: Skip this field during deserialization (replaces `@ignore`)
 
-**Benefits of Field over decorators:**
+- **`alias`**: Alternative key name in source data
+  ```python
+  user_id: Annotated[int, Field(alias="userId")]
+  ```
+
+- **`default`**: Default value if field is missing
+  ```python
+  is_active: Annotated[bool, Field(default=True)]
+  ```
+
+- **`parser`**: Function to transform the value before assignment
+  ```python
+  import datetime
+  
+  created_at: Annotated[datetime.datetime, Field(parser=datetime.datetime.fromtimestamp)]
+  ```
+
+- **`ignore`**: Skip this field during deserialization
+  ```python
+  internal_id: Annotated[str, Field(ignore=True)]
+  ```
+
+**Benefits of using Field:**
 - Configuration is co-located with the field definition
 - Better IDE autocomplete and type checking
 - More familiar to users of modern Python libraries
 - Easier to read - all field info in one place
+- Type-safe and validated at the point of declaration
 
-**Note:** `Field` and decorators can coexist. If both are present for a field, `Field` takes precedence. This allows gradual migration from decorators to `Field`.
+### Handling Different Key Names
 
-### Custom Keys
-
-It may be that you want to name your properties in your object something different to what is in the data. This can be for readability reasons, or because you have to (such as if your data item is named `__class__`). This can be handled too. Simply use the `key` annotation as follows:
+Data often comes with keys that don't match Python naming conventions. Use `Field(alias=...)` to map between them:
 
 ```python
-@deserialize.key("identifier", "id")
+from deserialize import Annotated, Field
+
 class MyClass:
+    # Map 'id' in data to 'identifier' in Python
+    identifier: Annotated[str, Field(alias="id")]
     value: int
-    identifier: str
 ```
 
-This will now assign the data with the key `id` to the field `identifier`. You can have multiple annotations to override multiple keys.
-
-### Auto Snake
-
-Data will often come in with the keys either camelCased or PascalCased. Since Python uses snake_case as standard for members, this means that custom keys are often used to do the conversion. To make this easier, you can add the `auto_snake` decorator and it will do this conversion for you where it can.
+For automatic camelCase/PascalCase to snake_case conversion, use the `auto_snake` decorator:
 
 ```python
-@deserialize.auto_snake()
+from deserialize import Annotated, Field, auto_snake
+
+@auto_snake()
 class MyClass:
     some_integer: int
     some_string: str
+    # Automatically maps "SomeInteger" and "SomeString" from data
 ```
-
-Now you can pass this data and it will automatically parse:
-
-```python
-{
-    "SomeInteger": 3,
-    "SomeString": "Hello"
-}
-```
-
-Note that all fields need to be snake cased if you use this decorator.
 
 ### Unhandled Fields
 
-Usually, if you don't specify the field in your definition, but it does exist in the data, you just want to ignore it. Sometimes however, you want to know if there is extra data. In this case, when calling `deserialize(...)` you can set `throw_on_unhandled=True` and it will raise an exception if any fields in the data are unhandled.
-
-Additionally, sometimes you want this, but know of a particular field that can be ignored. You can mark these as allowed to be unhandled with the decorator `@allow_unhandled("key_name")`.
-
-### Ignored Keys
-
-You may want some properties in your object that aren't loaded from disk, but instead created some other way. To do this, use the `ignore` decorator. Here's an example:
+Usually, if you don't specify a field in your definition but it exists in the data, it will be ignored. If you want to be notified about extra fields, set `throw_on_unhandled=True` when calling `deserialize(...)`:
 
 ```python
-@deserialize.ignore("identifier")
+# Will raise an exception if data has fields not defined in MyClass
+result = deserialize(MyClass, data, throw_on_unhandled=True)
+```
+
+To explicitly allow specific fields to be unhandled, use the `@allow_unhandled` decorator:
+
+```python
+@deserialize.allow_unhandled("metadata")
 class MyClass:
     value: int
-    identifier: str
 ```
 
-When deserializing, the library will now ignore the `identifier` property.
+### Ignored Fields
 
-### Parsers
-
-Sometimes you'll want something in your object in a format that the data isn't in. For example, if you get the data:
+Some properties in your class may not come from the deserialized data. Mark them as ignored using `Field(ignore=True)`:
 
 ```python
-{
-    "successful": True,
-    "timestamp": 1543770752
-}
+from deserialize import Annotated, Field
+
+class MyClass:
+    value: int
+    # This field won't be deserialized
+    identifier: Annotated[str, Field(ignore=True)]
 ```
 
-You may want that to be represented as:
+### Value Transformation with Parsers
+
+Transform values during deserialization using `Field(parser=...)`. This is useful when the data format doesn't match your desired type:
 
 ```python
+from deserialize import Annotated, Field
+import datetime
+
 class Result:
     successful: bool
-    timestamp: datetime.datetime
+    # Convert Unix timestamp to datetime
+    timestamp: Annotated[datetime.datetime, Field(parser=datetime.datetime.fromtimestamp)]
+
+# Input: {"successful": True, "timestamp": 1543770752}
+# result.timestamp will be a datetime object
 ```
 
-By default, it will fail on this deserialization as the value in the data is not a timestamp. To correct this, use the `parser` decorator to tell it a function to use to parse the data. E.g.
+The parser runs before type checking. If your field accepts `None`, ensure your parser handles it:
 
 ```python
-@deserialize.parser("timestamp", datetime.datetime.fromtimestamp)
+def parse_timestamp(value):
+    if value is None:
+        return None
+    return datetime.datetime.fromtimestamp(value)
+
 class Result:
-    successful: bool
-    timestamp: datetime.datetime
+    timestamp: Annotated[datetime.datetime | None, Field(parser=parse_timestamp)]
 ```
-
-This will now detect when handling the data for the _key_ `timestamp` and run it through the parser function supplied before assigning it to your new class instance.
-
-The parser is run _before_ type checking is done. This means that if you had something like `datetime.datetime | None`, you should ensure your parser can handle the value being `None`. Your parser will obviously need to return the type that you have declared on the property in order to work.
 
 
 ### Subclassing
 
-Subclassing is supported. If you have a type `Shape` for example, which has a subclass `Rectangle`, any properties on `Shape` are supported if you try and decode some data into a `rectangle object.
-
-### Raw Storage
-
-It can sometimes be useful to keep a reference to the raw data that was used to construct an object. To do this, simply set the `raw_storage_mode` paramater to `RawStorageMode.ROOT` or `RawStorageMode.ALL`. This will store the data in a parameter named `__deserialize_raw__` on the root object, or on all objects in the tree respectively.
-
-### Defaults
-
-Some data will come to you with fields missing. In these cases, a default is often known. To do this, simply decorate your class like this:
+Subclassing is fully supported. Properties from parent classes are automatically included during deserialization:
 
 ```python
-@deserialize.default("value", 0)
-class IntResult:
-    successful: bool
-    value: int
+class Shape:
+    color: str
+
+class Rectangle(Shape):
+    width: int
+    height: int
+
+# Will deserialize both 'color' and rectangle-specific fields
 ```
 
-If you pass in data like `{"successful": True}` this will deserialize to a default value of `0` for `value`. Note, that this would not deserialize since `value` is not optional: `{"successful": True, "value": None}`.
+### Raw Data Storage
+
+Keep a reference to the raw data used for construction by setting the `raw_storage_mode` parameter:
+
+```python
+from deserialize import deserialize, RawStorageMode
+
+result = deserialize(MyClass, data, raw_storage_mode=RawStorageMode.ROOT)
+# Access via: result.__deserialize_raw__
+```
+
+Options:
+- `RawStorageMode.ROOT`: Store raw data only on the root object
+- `RawStorageMode.ALL`: Store raw data on all objects in the tree
+
+### Default Values
+
+Provide default values for missing fields using `Field(default=...)`:
+
+```python
+from deserialize import Annotated, Field
+
+class IntResult:
+    successful: bool
+    value: Annotated[int, Field(default=0)]
+
+# Input: {"successful": True}
+# result.value will be 0
+```
+
+Note: Defaults only apply when the field is missing from the data. If the field is present with value `None`, it will fail unless the type allows `None`.
 
 ### Post-processing
 
@@ -309,7 +349,7 @@ If you can't describe all of your types, you can use `@deserialize.allow_downcas
 
 ### Custom Deserializing
 
-If none of the above work for you, sometimes there's no choice but to turn to customized deserialization code. To do this is very easy. Simple implement the `CustomDeserializable` protocol, and add the `deserialize` method to your class like so:
+If none of the above work for you, sometimes there's no choice but to turn to customized deserialization code. To do this is very easy. Simply implement the `CustomDeserializable` protocol, and add the `deserialize` method to your class like so:
 
 ```python
 class MyObject(deserialize.CustomDeserializable):
@@ -331,4 +371,81 @@ class MyObject(deserialize.CustomDeserializable):
 
 Normally you'd use a dictionary to create an object (something like `{"name": "Hodor", "age": 42}`), but this now allows us to use a list. i.e. `my_instance = deserialize.deserialize(MyObject, ["Hodor", 42])`
 
-No type checking is done on the result or input. It's entirely on the implementer at this point. 
+No type checking is done on the result or input. It's entirely on the implementer at this point.
+
+---
+
+## Deprecated Features
+
+The following decorator-based features are **deprecated** and maintained only for backward compatibility. New code should use `Field` with `Annotated` instead.
+
+### Deprecated: @key decorator
+
+**❌ Old way (deprecated):**
+```python
+@deserialize.key("identifier", "id")
+class MyClass:
+    identifier: str
+```
+
+**✅ New way:**
+```python
+from deserialize import Annotated, Field
+
+class MyClass:
+    identifier: Annotated[str, Field(alias="id")]
+```
+
+### Deprecated: @default decorator
+
+**❌ Old way (deprecated):**
+```python
+@deserialize.default("value", 0)
+class MyClass:
+    value: int
+```
+
+**✅ New way:**
+```python
+from deserialize import Annotated, Field
+
+class MyClass:
+    value: Annotated[int, Field(default=0)]
+```
+
+### Deprecated: @parser decorator
+
+**❌ Old way (deprecated):**
+```python
+@deserialize.parser("timestamp", datetime.datetime.fromtimestamp)
+class Result:
+    timestamp: datetime.datetime
+```
+
+**✅ New way:**
+```python
+from deserialize import Annotated, Field
+import datetime
+
+class Result:
+    timestamp: Annotated[datetime.datetime, Field(parser=datetime.datetime.fromtimestamp)]
+```
+
+### Deprecated: @ignore decorator
+
+**❌ Old way (deprecated):**
+```python
+@deserialize.ignore("identifier")
+class MyClass:
+    identifier: str
+```
+
+**✅ New way:**
+```python
+from deserialize import Annotated, Field
+
+class MyClass:
+    identifier: Annotated[str, Field(ignore=True)]
+```
+
+**Note:** If both `Field` and decorators are used for the same field, `Field` takes precedence.
