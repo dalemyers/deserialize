@@ -1,15 +1,208 @@
-"""Test multiple decorators and decorator combinations."""
+"""Test decorator functionality for deserialization."""
 
+import datetime
+import math
 import os
 import sys
+from typing import Any
 
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from deserialize import deserialize, key, parser, default, ignore
+from deserialize import (
+    DeserializeException,
+    constructed,
+    default,
+    deserialize,
+    ignore,
+    key,
+    parser,
+)
 
 # pylint: enable=wrong-import-position
+
+
+# ============================================================================
+# Key Decorator Tests
+# ============================================================================
+
+
+@key("field_1", "one")
+@key("field_2", "two")
+class KeySampleItem:
+    """Sample item for use in tests."""
+
+    field_1: int
+    field_2: str
+
+
+@key("identifier", "id")
+class KeySecondaryItem:
+    """Secondary sample item for use in tests."""
+
+    identifier: int
+
+
+def test_keys() -> None:
+    """Test that key mapping works correctly."""
+    data = {"one": 1, "two": "two"}
+
+    instance = deserialize(KeySampleItem, data)
+    assert data["one"] == instance.field_1
+    assert data["two"] == instance.field_2
+
+    instance = deserialize(KeySecondaryItem, {"id": 123})
+    assert instance.identifier == 123
+
+
+# ============================================================================
+# Default Decorator Tests
+# ============================================================================
+
+
+@default("two", "two")
+class DefaultSampleItem:
+    """Sample item for use in tests."""
+
+    one: int
+    two: str
+
+
+@default("two", "two")
+class DefaultSampleOptionalItem:
+    """Sample item for use in tests."""
+
+    one: int
+    two: str | None
+
+
+def test_default() -> None:
+    """Test that default values work correctly."""
+    test_cases: list[dict[str, Any]] = [{"one": 1, "two": "two"}, {"one": 1}]
+
+    for test_case in test_cases:
+        instance = deserialize(DefaultSampleItem, test_case)
+        assert test_case["one"] == instance.one
+        assert instance.two == "two"
+
+        optional_instance = deserialize(DefaultSampleOptionalItem, test_case)
+        assert test_case["one"] == optional_instance.one
+        assert optional_instance.two == "two"
+
+    invalid_test_cases = [{"one": 1, "two": None}]
+
+    for test_case in invalid_test_cases:
+        with pytest.raises(DeserializeException):
+            _ = deserialize(DefaultSampleItem, test_case)
+
+
+# ============================================================================
+# Parser Decorator Tests
+# ============================================================================
+
+
+@parser("int_field", int)
+@parser("datetime_field", datetime.datetime.fromtimestamp)
+@parser("some_values", lambda x: [y * 2 for y in x])
+class ParserSampleItem:
+    """Sample item for use in tests."""
+
+    int_field: int
+    datetime_field: datetime.datetime
+    some_values: list[int]
+
+
+def test_parser() -> None:
+    """Test that parsers are applied correctly."""
+    instance = deserialize(
+        ParserSampleItem,
+        {"int_field": "1", "datetime_field": 1543770752, "some_values": [1, 2, 3]},
+    )
+    assert instance.int_field == 1
+    assert instance.datetime_field == datetime.datetime(2018, 12, 2, 17, 12, 32)
+    assert instance.some_values == [2, 4, 6]
+
+
+# ============================================================================
+# Ignore Decorator Tests
+# ============================================================================
+
+
+@ignore("field_2")
+class IgnoreSampleItem:
+    """Sample item for use in tests."""
+
+    field_1: int
+    field_2: int
+
+
+def test_ignore() -> None:
+    """Test that ignored fields are skipped."""
+    data = {
+        "field_1": 1,
+    }
+
+    instance = deserialize(IgnoreSampleItem, data)
+    assert data["field_1"] == instance.field_1
+
+
+# ============================================================================
+# Constructed Decorator Tests
+# ============================================================================
+
+
+@constructed(lambda x: setattr(x, "constructed", True))
+class ConstructedBasic:
+    """Represents a basic class."""
+
+    one: int
+
+
+class ConstructedBasicUnconstructed:
+    """Represents a basic class."""
+
+    one: int
+
+
+def convert_to_radians(instance: "PolarCoordinate") -> None:
+    """Convert the angle on a PolarCoordinate from degrees to radians."""
+    instance.angle = instance.angle * math.pi / 180
+
+
+@constructed(convert_to_radians)
+class PolarCoordinate:
+    """Represents a polar coordinate."""
+
+    angle: float
+    magnitude: float
+
+
+def test_constructed() -> None:
+    """Test that the constructed decorator works correctly"""
+    data = [{"one": 1}]
+
+    for item in data:
+        instance = deserialize(ConstructedBasic, item)
+        assert getattr(instance, "constructed")
+        instance = deserialize(ConstructedBasicUnconstructed, item)
+        with pytest.raises(AttributeError):
+            getattr(instance, "constructed")
+
+
+def test_constructed_polar() -> None:
+    """Test that the polar coordinates example from the README works."""
+    data = {"angle": 180.0, "magnitude": 42.0}
+
+    instance = deserialize(PolarCoordinate, data)
+
+    assert -0.0001 < instance.angle - math.pi < 0.0001
+    assert instance.magnitude == data["magnitude"]
+
+
+# ============================================================================
+# Decorator Combination Tests
+# ============================================================================
 
 
 def test_key_and_parser_together() -> None:
