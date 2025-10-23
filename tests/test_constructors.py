@@ -67,6 +67,7 @@ def test_inherited_constructor() -> None:
 # Class Variables Tests
 # ============================================================================
 
+
 class BasicType:
     """Basic example."""
 

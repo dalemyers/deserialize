@@ -389,6 +389,7 @@ def test_non_json_types() -> None:
 # Example/Integration Tests
 # ============================================================================
 
+
 class Actor:
     """Represents an actor."""
 

@@ -1,5 +1,7 @@
 """Test exception handling and edge cases."""
 
+# pylint: disable=missing-class-docstring,import-outside-toplevel
+
 import os
 import sys
 
@@ -9,13 +11,16 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 # pylint: disable=wrong-import-position
 from deserialize import deserialize, DeserializeException
 from deserialize import downcast_field, downcast_identifier, allow_unhandled
+from deserialize import default, key
 from deserialize import (
     InvalidBaseTypeException,
     UnhandledFieldException,
     UndefinedDowncastException,
 )
 from deserialize.decorators.default import _get_default, _has_default
+from deserialize.decorators.downcasting import _get_downcast_class
 from deserialize.exceptions import NoDefaultSpecifiedException
+from deserialize.raw_storage_mode import RawStorageMode
 
 # pylint: enable=wrong-import-position
 
@@ -113,20 +118,6 @@ def test_undefined_downcast_exception_message() -> None:
 # ============================================================================
 # Coverage Gap Tests
 # ============================================================================
-
-"""Tests to cover missing code coverage gaps."""
-
-import pytest
-
-from deserialize import deserialize, default, key, downcast_field, downcast_identifier
-from deserialize.decorators.default import _get_default
-from deserialize.decorators.downcasting import _get_downcast_class
-from deserialize.exceptions import (
-    DeserializeException,
-    NoDefaultSpecifiedException,
-    UnhandledFieldException,
-)
-from deserialize.raw_storage_mode import RawStorageMode
 
 
 def test_class_reference_without_name_attribute():
@@ -358,7 +349,7 @@ def test_downcast_with_missing_identifier():
         type: str
 
     @downcast_identifier(Base, "type_a")
-    class TypeA(Base):
+    class TypeA(Base):  # pylint: disable=unused-variable
         pass
 
     # Try to deserialize with unregistered identifier
@@ -482,7 +473,6 @@ def test_throw_on_unhandled_for_dict_type():
     """Test throw_on_unhandled with Dict type deserialization."""
     # This tests line 287 in __init__.py - throw_on_unhandled for Dict types
 
-    
     data = {"key1": "value1", "key2": "value2", "extra": "value3"}
 
     # When deserializing to dict[str, str], all keys should be handled
@@ -495,7 +485,6 @@ def test_typing_type_with_none_data():
     """Test deserialization of typing type (non-Optional) with None data."""
     # This tests line 188 in __init__.py - typing type with None data
 
-    
     class Container:
         # Non-optional List field
         items: list[int]
@@ -510,6 +499,7 @@ def test_typing_type_with_none_data():
 # ============================================================================
 # Unhandled Field Tests
 # ============================================================================
+
 
 class Basic:
     """Represents a basic class."""

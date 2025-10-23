@@ -1,5 +1,7 @@
 """Test Field-based configuration using Annotated type hints."""
 
+# pylint: disable=missing-class-docstring,import-outside-toplevel
+
 import os
 import sys
 

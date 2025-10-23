@@ -376,7 +376,11 @@ def _deserialize_dict(
                 using_default = True
             else:
                 # Check if None is acceptable (Union with None)
-                if field_meta.is_union and field_meta.union_types and type(None) in field_meta.union_types:
+                if (
+                    field_meta.is_union
+                    and field_meta.union_types
+                    and type(None) in field_meta.union_types
+                ):
                     property_value = field_meta.parser(None)
                 else:
                     raise DeserializeException(
