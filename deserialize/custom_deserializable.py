@@ -10,3 +10,4 @@ class CustomDeserializable(Protocol):
     @classmethod
     def deserialize(cls, value: Any) -> "CustomDeserializable":
         """Override this method to implement custom deserialization logic."""
+        raise NotImplementedError()

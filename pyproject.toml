@@ -30,6 +30,7 @@ python = "^3.10"
 black = "=25.9.0"
 mypy = "=1.18.2"
 pylint = "=3.3.9"
+pyright = "=1.1.406"
 pytest = "=8.4.2"
 pytest-cov = "=7.0.0"
 recommonmark = "=0.7.1"
@@ -38,3 +39,22 @@ sphinx = "=7.4.7"
 [build-system]
 requires = ["poetry>=1.0"]
 build-backend = "poetry.masonry.api"
+
+[tool.pyright]
+include = ["deserialize", "tests"]
+exclude = ["**/__pycache__"]
+defineConstant = { DEBUG = true }
+
+reportMissingImports = "error"
+reportMissingTypeStubs = true
+
+typeCheckingMode = "strict"
+
+pythonVersion = "3.10"
+
+# Allow internal API functions (starting with _) to be used within the package
+reportPrivateUsage = "none"
+
+# Don't warn about internal functions not being accessed in their own modules
+# (they're used from other modules within the package)
+reportUnusedFunction = "none"

@@ -1,25 +1,29 @@
 """Decorators used for adding functionality to the library."""
 
+from typing import Any, Callable, TypeVar
+
 from deserialize.exceptions import NoDefaultSpecifiedException
 
+T = TypeVar("T")
 
-def default(key_name, default_value):
+
+def default(key_name: str, default_value: Any) -> Callable[[type[T]], type[T]]:
     """A decorator function for mapping default values to key names."""
 
-    def store_defaults_map(class_reference):
+    def store_defaults_map(class_reference: type[T]) -> type[T]:
         """Store the defaults map."""
 
         if not hasattr(class_reference, "__deserialize_defaults_map__"):
             setattr(class_reference, "__deserialize_defaults_map__", {})
 
-        class_reference.__deserialize_defaults_map__[key_name] = default_value
+        class_reference.__deserialize_defaults_map__[key_name] = default_value  # type: ignore[attr-defined]
 
         return class_reference
 
     return store_defaults_map
 
 
-def _has_default(class_reference, key_name):
+def _has_default(class_reference: type[Any], key_name: str) -> bool:
     """Returns True if this key has a default, False otherwise.
 
     :returns: True if this key has a default, False otherwise.
@@ -31,7 +35,7 @@ def _has_default(class_reference, key_name):
     return key_name in class_reference.__deserialize_defaults_map__
 
 
-def _get_default(class_reference, key_name):
+def _get_default(class_reference: type[Any], key_name: str) -> Any:
     """Get the default value for the given class and key name.
 
     :raises NoDefaultSpecifiedException: If a default hasn't been specified

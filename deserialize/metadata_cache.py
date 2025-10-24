@@ -1,7 +1,7 @@
 """Class metadata caching for performance optimization."""
 
 import typing
-from typing import Any, get_args, get_origin, Annotated
+from typing import Any, Callable, get_args, get_origin, Annotated
 
 from deserialize.decorators import (
     _get_key,
@@ -69,13 +69,31 @@ class FieldMetadata:
         "pascal_key",
     )
 
+    name: str
+    type: Any
+    key: str
+    parser: Callable[[Any], Any]
+    has_default: bool
+    default_value: Any
+    ignore: bool
+    is_classvar: bool
+    is_union: bool
+    is_list: bool
+    is_dict: bool
+    union_types: set[Any] | None
+    list_type: Any | None
+    dict_key_type: Any | None
+    dict_value_type: Any | None
+    camel_key: str | None
+    pascal_key: str | None
+
     def __init__(
         self,
         name: str,
         field_type: Any,
         class_reference: Any,
         auto_snake: bool,
-    ):
+    ) -> None:
         self.name = name
 
         # Extract Field configuration from Annotated if present
@@ -86,7 +104,12 @@ class FieldMetadata:
         if field_config:
             # Use Field configuration
             self.key = field_config.alias or name
-            self.parser = field_config.parser or (lambda x: x)
+            # Create a proper parser function
+            if field_config.parser:
+                self.parser = field_config.parser
+            else:
+                identity_func: Callable[[Any], Any] = lambda x: x
+                self.parser = identity_func
             self.has_default = field_config.has_default()
             self.default_value = field_config.default if field_config.has_default() else None
             self.ignore = field_config.ignore
@@ -144,6 +167,13 @@ class ClassMetadata:
         "allows_downcast_fallback",
     )
 
+    class_reference: Any
+    hints: dict[str, Any]
+    fields: dict[str, FieldMetadata]
+    auto_snake: bool
+    downcast_field: str | None
+    allows_downcast_fallback: bool
+
     def __init__(self, class_reference: Any):
         self.class_reference = class_reference
 
@@ -156,7 +186,7 @@ class ClassMetadata:
         self.allows_downcast_fallback = _allows_downcast_fallback(class_reference)
 
         # Build field metadata
-        self.fields: dict[str, FieldMetadata] = {}
+        self.fields = {}
         for attr_name, attr_type in self.hints.items():
             self.fields[attr_name] = FieldMetadata(
                 attr_name, attr_type, class_reference, self.auto_snake

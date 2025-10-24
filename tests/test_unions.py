@@ -45,7 +45,9 @@ class SomeUnionClassNew:
     "union_class",
     [BasicUnionClassOld, BasicUnionClassNew],
 )
-def test_union_simple(union_class: Type):
+def test_union_simple(
+    union_class: type[BasicUnionClassNew] | type[BasicUnionClassOld],
+) -> None:
     """Test that items with a simple union property deserializes."""
     valid_test_cases: list[dict[str, Any]] = [
         {"one": 1},
@@ -55,16 +57,18 @@ def test_union_simple(union_class: Type):
     invalid_test_cases: list[dict[str, Any]] = [
         {"one": 3.1415},
         {"one": None},
-        {"one": union_class()},
+        {"one": union_class()},  # pyright: ignore[reportCallIssue]
     ]
 
     for valid_test_case in valid_test_cases:
-        instance = deserialize(union_class, valid_test_case)
+        instance: BasicUnionClassNew | BasicUnionClassOld = deserialize(
+            union_class, valid_test_case
+        )
         assert valid_test_case["one"] == instance.one
 
     for invalid_test_case in invalid_test_cases:
         with pytest.raises(DeserializeException):
-            _ = deserialize(union_class, invalid_test_case)
+            _: BasicUnionClassNew | BasicUnionClassOld = deserialize(union_class, invalid_test_case)
 
 
 @pytest.mark.parametrize(
@@ -74,7 +78,7 @@ def test_union_simple(union_class: Type):
         (BasicUnionClassNew, SomeUnionClassNew),
     ],
 )
-def test_union(union_classes: tuple[Type, Type]):
+def test_union(union_classes: tuple[Type[Any], Type[Any]]):
     """Test that items with union properties deserializes."""
 
     basic_union_class, some_union_class = union_classes

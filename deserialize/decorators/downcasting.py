@@ -1,10 +1,14 @@
 """Decorators used for adding functionality to the library."""
 
+from typing import Any, Callable, TypeVar
 
-def downcast_field(property_name):
+T = TypeVar("T")
+
+
+def downcast_field(property_name: str) -> Callable[[type[T]], type[T]]:
     """A decorator function for handling downcasting."""
 
-    def store_downcast_field_value(class_reference):
+    def store_downcast_field_value(class_reference: type[T]) -> type[T]:
         """Store the key map."""
         setattr(class_reference, "__deserialize_downcast_field__", property_name)
         return class_reference
@@ -12,15 +16,15 @@ def downcast_field(property_name):
     return store_downcast_field_value
 
 
-def _get_downcast_field(class_reference):
+def _get_downcast_field(class_reference: type[Any]) -> str | None:
     """Get the downcast field name if set, None otherwise."""
     return getattr(class_reference, "__deserialize_downcast_field__", None)
 
 
-def downcast_identifier(super_class, identifier):
+def downcast_identifier(super_class: type[Any], identifier: Any) -> Callable[[type[T]], type[T]]:
     """A decorator function for storing downcast identifiers."""
 
-    def store_key_map(class_reference):
+    def store_key_map(class_reference: type[T]) -> type[T]:
         """Store the downcast map."""
         if not hasattr(super_class, "__deserialize_downcast_map__"):
             setattr(super_class, "__deserialize_downcast_map__", {})
@@ -32,7 +36,7 @@ def downcast_identifier(super_class, identifier):
     return store_key_map
 
 
-def _get_downcast_class(super_class, identifier):
+def _get_downcast_class(super_class: type[Any], identifier: Any) -> type[Any] | None:
     """Get the downcast identifier for the given class and super class, returning None if not set"""
 
     if not hasattr(super_class, "__deserialize_downcast_map__"):
@@ -41,10 +45,10 @@ def _get_downcast_class(super_class, identifier):
     return super_class.__deserialize_downcast_map__.get(identifier)
 
 
-def allow_downcast_fallback():
+def allow_downcast_fallback() -> Callable[[type[T]], type[T]]:
     """A decorator function for setting that downcast fallback to dicts is allowed."""
 
-    def store(class_reference):
+    def store(class_reference: type[T]) -> type[T]:
         """Store the allowance flag."""
         setattr(class_reference, "__deserialize_downcast_allow_fallback__", True)
         return class_reference
@@ -52,6 +56,6 @@ def allow_downcast_fallback():
     return store
 
 
-def _allows_downcast_fallback(super_class):
+def _allows_downcast_fallback(super_class: type[Any]) -> bool:
     """Get the whether downcast can fallback to a dict or not"""
     return getattr(super_class, "__deserialize_downcast_allow_fallback__", False)

@@ -46,7 +46,7 @@ def test_is_typing_type() -> None:
     assert is_typing_type(Dict)
     assert is_typing_type(dict[str, str])
     assert is_typing_type(int | None)
-    assert is_typing_type(list[List])
+    assert is_typing_type(list[List])  # pyright: ignore[reportMissingTypeArgument]
     assert is_typing_type(tuple[str, int])
     assert is_typing_type(Union[str, None])
     assert is_typing_type(Union[str, int])
@@ -238,10 +238,10 @@ def test_base_type_lists() -> None:
 
 def test_base_type() -> None:
     """Test that base types don't parse."""
-    base_types = [
+    base_types = [  # pyright: ignore[reportUnknownVariableType]
         (1, int),
         ("Hello", str),
-        (lambda x: x * 2, Callable),
+        (lambda x: x * 2, Callable),  # pyright: ignore[reportUnknownLambdaType]
         (3.14159, float),
         (datetime.datetime.now(), datetime.datetime),
         (set([]), set),
@@ -249,9 +249,12 @@ def test_base_type() -> None:
         (range(3), range),
     ]
 
-    for base_value, base_type in base_types:
+    for base_value, base_type in base_types:  # pyright: ignore[reportUnknownVariableType]
         with pytest.raises(InvalidBaseTypeException):
-            _ = deserialize(base_type, base_value)
+            _ = deserialize(  # pyright: ignore[reportUnknownVariableType, reportArgumentType]
+                base_type,  # pyright: ignore[reportUnknownVariableType, reportArgumentType]
+                base_value,  # pyright: ignore[reportUnknownVariableType, reportArgumentType]
+            )
 
 
 # ============================================================================
@@ -264,7 +267,7 @@ class ListClass:
 
     one: list[int]
     two: list[int]
-    three: list
+    three: list  # pyright: ignore[reportMissingTypeArgument]
 
 
 class DictClass:
@@ -272,7 +275,7 @@ class DictClass:
 
     one: dict[int, int]
     two: dict[int, int]
-    three: dict
+    three: dict  # pyright: ignore[reportMissingTypeArgument]
 
 
 @pytest.mark.parametrize(
@@ -284,7 +287,7 @@ def test_generic_lists(value: dict[str, Any]):
     instance = deserialize(ListClass, value)
     assert value["one"] == instance.one
     assert value["two"] == instance.two
-    assert value["three"] == instance.three
+    assert value["three"] == instance.three  # pyright: ignore[reportUnknownMemberType]
 
 
 @pytest.mark.parametrize(
@@ -302,7 +305,7 @@ def test_generic_dicts(value: dict[str, Any]):
     instance = deserialize(DictClass, value)
     assert value["one"] == instance.one
     assert value["two"] == instance.two
-    assert value["three"] == instance.three
+    assert value["three"] == instance.three  # pyright: ignore[reportUnknownMemberType]
 
 
 # ============================================================================
@@ -356,7 +359,7 @@ class NestedNewStyle:
     matrix: list[list[int]]
 
 
-def test_old_style_annotations():
+def test_old_style_annotations() -> None:
     """Test deserialization with old-style type annotations."""
     data = {
         "name": "Alice",
@@ -375,9 +378,9 @@ def test_old_style_annotations():
     assert result.nested_lists == [[1, 2], [3, 4]]
 
 
-def test_old_style_with_none():
+def test_old_style_with_none() -> None:
     """Test old-style Optional with None value."""
-    data = {
+    data: dict[Any, Any] = {
         "name": "Bob",
         "age": None,
         "tags": [],
@@ -394,7 +397,7 @@ def test_old_style_with_none():
     assert result.nested_lists == []
 
 
-def test_new_style_annotations():
+def test_new_style_annotations() -> None:
     """Test deserialization with new-style type annotations."""
     data = {
         "name": "Charlie",
@@ -413,9 +416,9 @@ def test_new_style_annotations():
     assert result.nested_lists == [[5, 6], [7, 8]]
 
 
-def test_new_style_with_none():
+def test_new_style_with_none() -> None:
     """Test new-style union with None value."""
-    data = {
+    data: dict[Any, Any] = {
         "name": "Diana",
         "age": None,
         "tags": [],
@@ -431,7 +434,7 @@ def test_new_style_with_none():
     assert result.nested_lists == []
 
 
-def test_mixed_style_annotations():
+def test_mixed_style_annotations() -> None:
     """Test that mixing old and new style annotations works."""
     data = {
         "name": "Eve",
@@ -448,9 +451,9 @@ def test_mixed_style_annotations():
     assert result.mapping == {"key1": 1, "key2": 2}
 
 
-def test_mixed_style_with_none():
+def test_mixed_style_with_none() -> None:
     """Test mixed style with None value."""
-    data = {
+    data: dict[Any, Any] = {
         "name": "Frank",
         "count": None,
         "items": [],
@@ -465,7 +468,7 @@ def test_mixed_style_with_none():
     assert result.mapping == {}
 
 
-def test_nested_old_style():
+def test_nested_old_style() -> None:
     """Test nested old-style annotations."""
     data = {
         "items": [
@@ -490,7 +493,7 @@ def test_nested_old_style():
     ]
 
 
-def test_nested_new_style():
+def test_nested_new_style() -> None:
     """Test nested new-style annotations."""
     data = {
         "items": [
@@ -533,7 +536,7 @@ class SimpleItem:
     value: int
 
 
-def test_old_style_list_of_classes():
+def test_old_style_list_of_classes() -> None:
     """Test old-style list of custom classes."""
     data = {
         "items": [
@@ -550,7 +553,7 @@ def test_old_style_list_of_classes():
     assert [item.value for item in result.items] == [1, 2, 3]
 
 
-def test_new_style_list_of_classes():
+def test_new_style_list_of_classes() -> None:
     """Test new-style list of custom classes."""
     data = {
         "items": [
@@ -579,7 +582,7 @@ class NewStyleComplexUnions:
     value: list[dict[str, int]] | None
 
 
-def test_old_style_complex_union():
+def test_old_style_complex_union() -> None:
     """Test old-style complex union type."""
     data = {"value": [{"a": 1}, {"b": 2}]}
     result = deserialize(OldStyleComplexUnions, data)
@@ -590,7 +593,7 @@ def test_old_style_complex_union():
     assert result_none.value is None
 
 
-def test_new_style_complex_union():
+def test_new_style_complex_union() -> None:
     """Test new-style complex union type."""
     data = {"value": [{"a": 1}, {"b": 2}]}
     result = deserialize(NewStyleComplexUnions, data)

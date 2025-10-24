@@ -16,7 +16,7 @@ from deserialize import deserialize, DeserializeException
 class UnannotatedClass:
     """Test class with no type annotations."""
 
-    def __init__(self, value):
+    def __init__(self, value: Any):
         self.value = value
 
 
@@ -80,7 +80,7 @@ class TypeWithSimpleDict:
     """Test a class that has a simple dict embedded."""
 
     value: int
-    dict_value: dict
+    dict_value: dict  # type: ignore[reportGeneralTypeIssues]
 
 
 class TypeWithDict:
@@ -107,7 +107,7 @@ class TypeWithUnion:
 class NonJsonTypes:
     """Test a class that uses base types that aren't JSON compatible."""
 
-    one: tuple
+    one: tuple  # type: ignore
     two: range
 
 
@@ -255,7 +255,7 @@ def test_complex_nested() -> None:
         if test_case["five"] is None:
             assert instance.five is None
         else:
-            assert test_case["five"]["my_property"] == instance.five.my_property
+            assert test_case["five"]["my_property"] == instance.five.my_property  # type: ignore
         for i in range(0, len(test_case["six"])):
             assert test_case["six"][i]["my_list"] == instance.six[i].my_list
 
@@ -309,7 +309,7 @@ def test_type_with_simple_dict() -> None:
         instance = deserialize(TypeWithSimpleDict, test_case)
         assert instance.value == test_case["value"]
         for key, value in test_case["dict_value"].items():
-            assert instance.dict_value.get(key) == value
+            assert instance.dict_value.get(key) == value  # pyright: ignore[reportUnknownMemberType]
 
     failure_cases: list[dict[str, Any]] = [
         {"value": 1, "dict_value": []},
@@ -381,7 +381,7 @@ def test_non_json_types() -> None:
     data = {"one": (1, 2), "two": range(3)}
 
     result = deserialize(NonJsonTypes, data)
-    assert data["one"] == result.one
+    assert data["one"] == result.one  # pyright: ignore[reportUnknownMemberType]
     assert data["two"] == result.two
 
 

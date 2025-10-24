@@ -65,6 +65,7 @@ def test_enums_simple() -> None:
         if test_case["my_optional_enum"] is None:
             assert instance.my_optional_enum is None
         else:
+            assert instance.my_optional_enum is not None
             assert test_case["my_optional_enum"] == instance.my_optional_enum.value
 
     for invalid_test_case in invalid_test_cases:

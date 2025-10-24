@@ -4,21 +4,27 @@
 
 import os
 import sys
+from typing import Any
 
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
 from deserialize import deserialize, DeserializeException
-from deserialize import downcast_field, downcast_identifier, allow_unhandled
+from deserialize import downcast_field, allow_unhandled
 from deserialize import default, key
 from deserialize import (
     InvalidBaseTypeException,
     UnhandledFieldException,
     UndefinedDowncastException,
 )
-from deserialize.decorators.default import _get_default, _has_default
-from deserialize.decorators.downcasting import _get_downcast_class
+from deserialize.decorators.default import (
+    _get_default,  # pyright: ignore[reportPrivateUsage]
+    _has_default,  # pyright: ignore[reportPrivateUsage]
+)
+from deserialize.decorators.downcasting import (
+    _get_downcast_class,  # pyright: ignore[reportPrivateUsage]
+)
 from deserialize.exceptions import NoDefaultSpecifiedException
 from deserialize.raw_storage_mode import RawStorageMode
 
@@ -67,7 +73,10 @@ def test_invalid_base_type_detailed() -> None:
 
     for value, type_ref in invalid_types:
         with pytest.raises(InvalidBaseTypeException) as exc_info:
-            deserialize(type_ref, value)
+            deserialize(
+                type_ref,
+                value,  # pyright: ignore[reportArgumentType] # We are deliberately passing wrong type
+            )
 
         assert "lists and dictionaries" in str(exc_info.value).lower()
 
@@ -99,12 +108,6 @@ def test_undefined_downcast_exception_message() -> None:
 
         type: str
 
-    @downcast_identifier(BaseClass, "known")
-    class _KnownClass(BaseClass):
-        """Known subclass."""
-
-        value: int
-
     data = {"type": "unknown", "value": 42}
 
     with pytest.raises(UndefinedDowncastException) as exc_info:
@@ -120,7 +123,7 @@ def test_undefined_downcast_exception_message() -> None:
 # ============================================================================
 
 
-def test_class_reference_without_name_attribute():
+def test_class_reference_without_name_attribute() -> None:
     """Test deserialization when class_reference doesn't have __name__ attribute."""
     # This tests line 55 in __init__.py - the else branch
     # when hasattr(class_reference, "__name__") is False
@@ -145,7 +148,7 @@ def test_class_reference_without_name_attribute():
     assert result.value == 42
 
 
-def test_deserialize_multiple_exceptions():
+def test_deserialize_multiple_exceptions() -> None:
     """Test deserialization with multiple exceptions to cover exception formatting."""
     # This tests lines 140-146 in __init__.py - formatting multiple exception lines
 
@@ -164,7 +167,7 @@ def test_deserialize_multiple_exceptions():
     assert "value" in str(exc_info.value) or "other" in str(exc_info.value)
 
 
-def test_deserialize_non_list_as_list():
+def test_deserialize_non_list_as_list() -> None:
     """Test deserializing non-list data as list type."""
     # This tests line 217 in __init__.py - checking if list_data is actually a list
 
@@ -178,7 +181,7 @@ def test_deserialize_non_list_as_list():
     assert exc_info.value is not None
 
 
-def test_deserialize_non_dict_as_instance():
+def test_deserialize_non_dict_as_instance() -> None:
     """Test deserializing non-dict data as class instance."""
     # This tests line 259 in __init__.py - checking if data is dict for instance
 
@@ -195,7 +198,7 @@ def test_deserialize_non_dict_as_instance():
         deserialize(Outer, {"inner": "not_a_dict"})
 
 
-def test_unhandled_field_exception():
+def test_unhandled_field_exception() -> None:
     """Test that unhandled fields raise exception when configured."""
     # This tests line 287 in __init__.py - throw_on_unhandled branch
 
@@ -213,7 +216,7 @@ def test_unhandled_field_exception():
     assert "extra_field" in str(exc_info.value)
 
 
-def test_class_new_type_error():
+def test_class_new_type_error() -> None:
     """Test handling TypeError when calling __new__ on a class."""
     # This tests lines 322-323 in __init__.py - TypeError catch in __new__
 
@@ -229,7 +232,7 @@ def test_class_new_type_error():
     assert "Could not create instance" in str(exc_info.value)
 
 
-def test_get_default_no_default_specified():
+def test_get_default_no_default_specified() -> None:
     """Test _get_default when no default exists."""
     # This tests line 46 in decorators/default.py - NoDefaultSpecifiedException
 
@@ -240,7 +243,7 @@ def test_get_default_no_default_specified():
         _get_default(NoDefaultClass, "value")
 
 
-def test_get_default_key_not_in_map():
+def test_get_default_key_not_in_map() -> None:
     """Test _get_default when class has defaults but not for this key."""
     # This tests line 46 in decorators/default.py - key not in map
 
@@ -254,7 +257,7 @@ def test_get_default_key_not_in_map():
         _get_default(PartialDefaultClass, "value")
 
 
-def test_get_downcast_class_no_map():
+def test_get_downcast_class_no_map() -> None:
     """Test _get_downcast_class when no downcast map exists."""
     # This tests line 39 in decorators/downcasting.py - return None branch
 
@@ -265,7 +268,7 @@ def test_get_downcast_class_no_map():
     assert result is None
 
 
-def test_extract_field_config_non_annotated():
+def test_extract_field_config_non_annotated() -> None:
     """Test _extract_field_config with non-Annotated type."""
     # This tests line 44 in metadata_cache.py - return without Field
 
@@ -277,7 +280,7 @@ def test_extract_field_config_non_annotated():
     assert result.value == 42
 
 
-def test_annotated_without_field():
+def test_annotated_without_field() -> None:
     """Test Annotated type hint without Field metadata."""
     # This tests line 44 in metadata_cache.py - Annotated without Field
 
@@ -291,7 +294,7 @@ def test_annotated_without_field():
     assert result.value == 42
 
 
-def test_raw_storage_mode_unexpected():
+def test_raw_storage_mode_unexpected() -> None:
     """Test RawStorageMode.child_mode() with invalid mode."""
     # This tests line 49 in raw_storage_mode.py - unexpected storage mode exception
 
@@ -305,7 +308,7 @@ def test_raw_storage_mode_unexpected():
     # This is a defensive programming check
 
 
-def test_deserialize_list_with_type_errors():
+def test_deserialize_list_with_type_errors() -> None:
     """Test deserializing a list where items fail to deserialize."""
 
     class StrictType:
@@ -318,7 +321,7 @@ def test_deserialize_list_with_type_errors():
         deserialize(list[StrictType], data)
 
 
-def test_deserialize_optional_with_none():
+def test_deserialize_optional_with_none() -> None:
     """Test deserializing Optional type with None value."""
 
     class Container:
@@ -328,7 +331,7 @@ def test_deserialize_optional_with_none():
     assert result.maybe_value is None
 
 
-def test_deserialize_nested_with_errors():
+def test_deserialize_nested_with_errors() -> None:
     """Test nested deserialization with errors in child objects."""
 
     class Child:
@@ -341,23 +344,19 @@ def test_deserialize_nested_with_errors():
         deserialize(Parent, {"child": {"value": "not_an_int"}})
 
 
-def test_downcast_with_missing_identifier():
+def test_downcast_with_missing_identifier() -> None:
     """Test downcasting when identifier doesn't match any registered class."""
 
     @downcast_field("type")
     class Base:
         type: str
 
-    @downcast_identifier(Base, "type_a")
-    class TypeA(Base):  # pylint: disable=unused-variable
-        pass
-
     # Try to deserialize with unregistered identifier
     with pytest.raises(DeserializeException):
         deserialize(Base, {"type": "unknown_type"})
 
 
-def test_key_decorator_with_multiple_keys():
+def test_key_decorator_with_multiple_keys() -> None:
     """Test key decorator with multiple key options by trying different keys."""
 
     @key("value", "val")
@@ -377,12 +376,12 @@ def test_key_decorator_with_multiple_keys():
     assert result2.value == 43
 
 
-def test_deserialize_with_parser_exception():
+def test_deserialize_with_parser_exception() -> None:
     """Test deserialization when parser function raises exception."""
 
     from deserialize import parser
 
-    def failing_parser(value):
+    def failing_parser(value: Any):
         raise ValueError("Parser failed")
 
     @parser("value", failing_parser)
@@ -396,7 +395,7 @@ def test_deserialize_with_parser_exception():
     assert "Parser failed" in str(exc_info.value)
 
 
-def test_default_with_none_value():
+def test_default_with_none_value() -> None:
     """Test default decorator with None as the default value."""
 
     @default("value", None)
@@ -407,7 +406,7 @@ def test_default_with_none_value():
     assert result.value is None
 
 
-def test_complex_nested_structure():
+def test_complex_nested_structure() -> None:
     """Test complex nested structure to ensure all paths are covered."""
 
     class Address:
@@ -447,7 +446,7 @@ def test_complex_nested_structure():
     assert result.employees[1].tags == ["manager"]
 
 
-def test_multiline_exception_formatting():
+def test_multiline_exception_formatting() -> None:
     """Test that multiline exceptions are formatted correctly."""
     # This tests line 144 in __init__.py - formatting exception lines with newlines
 
@@ -469,7 +468,7 @@ def test_multiline_exception_formatting():
     assert exc_info.value is not None
 
 
-def test_throw_on_unhandled_for_dict_type():
+def test_throw_on_unhandled_for_dict_type() -> None:
     """Test throw_on_unhandled with Dict type deserialization."""
     # This tests line 287 in __init__.py - throw_on_unhandled for Dict types
 
@@ -481,7 +480,7 @@ def test_throw_on_unhandled_for_dict_type():
     assert result == data  # Should work fine, all handled
 
 
-def test_typing_type_with_none_data():
+def test_typing_type_with_none_data() -> None:
     """Test deserialization of typing type (non-Optional) with None data."""
     # This tests line 188 in __init__.py - typing type with None data
 

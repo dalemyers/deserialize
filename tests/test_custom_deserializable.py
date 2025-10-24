@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Any
+from typing import Any, cast
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -25,6 +25,7 @@ class Custom(deserialize.CustomDeserializable):
     def deserialize(cls, value: Any) -> "Custom":
         """Custom deserialization logic."""
         assert isinstance(value, list)
+        value = cast(list[Any], value)  # pyright: ignore[reportUnnecessaryCast]
         assert len(value) == 2
 
         return cls(value[0], value[1])
@@ -37,15 +38,15 @@ class CustomContainer:
     custom: Custom
 
 
-def test_custom_deserializer():
+def test_custom_deserializer() -> None:
     """Test that items with a constructor can be deserialized."""
-    instance = deserialize.deserialize(Custom, ["foo", 2])
-    assert "foo" == instance.name
-    assert 2 == instance.age
+    custom_instance = deserialize.deserialize(Custom, ["foo", 2])
+    assert "foo" == custom_instance.name
+    assert 2 == custom_instance.age
 
-    instance = deserialize.deserialize(
+    custom_container_instance = deserialize.deserialize(
         CustomContainer, {"identifier": "some id", "custom": ["foo", 2]}
     )
-    assert "some id" == instance.identifier
-    assert "foo" == instance.custom.name
-    assert 2 == instance.custom.age
+    assert "some id" == custom_container_instance.identifier
+    assert "foo" == custom_container_instance.custom.name
+    assert 2 == custom_container_instance.custom.age

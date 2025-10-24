@@ -48,12 +48,12 @@ def test_keys() -> None:
     """Test that key mapping works correctly."""
     data = {"one": 1, "two": "two"}
 
-    instance = deserialize(KeySampleItem, data)
-    assert data["one"] == instance.field_1
-    assert data["two"] == instance.field_2
+    instance_one = deserialize(KeySampleItem, data)
+    assert data["one"] == instance_one.field_1
+    assert data["two"] == instance_one.field_2
 
-    instance = deserialize(KeySecondaryItem, {"id": 123})
-    assert instance.identifier == 123
+    instance_two = deserialize(KeySecondaryItem, {"id": 123})
+    assert instance_two.identifier == 123
 
 
 # ============================================================================
@@ -183,11 +183,11 @@ def test_constructed() -> None:
     data = [{"one": 1}]
 
     for item in data:
-        instance = deserialize(ConstructedBasic, item)
-        assert getattr(instance, "constructed")
-        instance = deserialize(ConstructedBasicUnconstructed, item)
+        basic_instance = deserialize(ConstructedBasic, item)
+        assert getattr(basic_instance, "constructed")
+        unconstructed_instance = deserialize(ConstructedBasicUnconstructed, item)
         with pytest.raises(AttributeError):
-            getattr(instance, "constructed")
+            getattr(unconstructed_instance, "constructed")
 
 
 def test_constructed_polar() -> None:

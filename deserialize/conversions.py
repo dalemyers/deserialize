@@ -1,7 +1,7 @@
 """Handlers for case conversions for strings."""
 
 
-def camel_case(string):
+def camel_case(string: str) -> str:
     """Convert a string to camel case from snake case."""
     string = pascal_case(string)
     if len(string) > 1:
@@ -11,7 +11,7 @@ def camel_case(string):
     return string
 
 
-def pascal_case(string):
+def pascal_case(string: str) -> str:
     """Convert a string to pascal case from snake case."""
     string = string.title()
     string = string.replace("_", "")

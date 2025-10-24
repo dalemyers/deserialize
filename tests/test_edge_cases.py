@@ -23,7 +23,7 @@ from deserialize import (
 def test_parser_with_none_optional() -> None:
     """Test parser behavior with None values in Optional fields."""
 
-    def safe_parser(value):
+    def safe_parser(value: Any) -> int | None:
         """Parser that handles None."""
         if value is None:
             return None
@@ -49,7 +49,7 @@ def test_parser_with_none_optional() -> None:
 def test_parser_with_none_non_optional() -> None:
     """Test parser that receives None for non-optional field should fail type check."""
 
-    def bad_parser(value):
+    def bad_parser(value: Any) -> int:
         """Parser that doesn't handle None properly."""
         return int(value)  # This will fail if value is None
 
@@ -86,7 +86,7 @@ def test_default_with_none_value() -> None:
 def test_constructed_with_exception() -> None:
     """Test @constructed decorator when the function raises an exception."""
 
-    def failing_constructor(instance):
+    def failing_constructor(instance: Any):
         """Constructor that always fails."""
         raise ValueError("Construction failed!")
 
@@ -107,11 +107,11 @@ def test_constructed_with_exception() -> None:
 def test_constructed_with_modification() -> None:
     """Test @constructed decorator that modifies the instance."""
 
-    def validate_and_modify(instance):
+    def validate_and_modify(instance: "WithValidation"):
         """Validate and modify instance."""
         if instance.value < 0:
             raise ValueError("Value must be positive")
-        instance.doubled = instance.value * 2
+        instance.doubled = instance.value * 2  # type: ignore
 
     @constructed(validate_and_modify)
     class WithValidation:
@@ -123,7 +123,7 @@ def test_constructed_with_modification() -> None:
     data1 = {"value": 10}
     instance1 = deserialize(WithValidation, data1)
     assert instance1.value == 10
-    assert instance1.doubled == 20
+    assert instance1.doubled == 20  # type: ignore
 
     # Invalid case
     data2 = {"value": -5}

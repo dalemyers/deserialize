@@ -39,7 +39,7 @@ def test_root_simple() -> None:
             raw_storage_mode=RawStorageMode.ROOT,
         )
         assert test_case["one"] == instance.one
-        assert test_case == instance.__deserialize_raw__
+        assert test_case == instance.__deserialize_raw__  # type: ignore
 
 
 def test_root_bigger() -> None:
@@ -57,7 +57,7 @@ def test_root_bigger() -> None:
         assert test_case["one"] == instance.one
         assert test_case["two"]["one"] == instance.two.one
         assert test_case["three"] == instance.three
-        assert test_case == instance.__deserialize_raw__
+        assert test_case == instance.__deserialize_raw__  # type: ignore
         assert not hasattr(instance.two, "__deserialize_raw__")
 
 
@@ -74,7 +74,7 @@ def test_all_simple() -> None:
             raw_storage_mode=RawStorageMode.ALL,
         )
         assert test_case["one"] == instance.one
-        assert test_case == instance.__deserialize_raw__
+        assert test_case == instance.__deserialize_raw__  # type: ignore
 
 
 def test_all_bigger() -> None:
@@ -92,8 +92,8 @@ def test_all_bigger() -> None:
         assert test_case["one"] == instance.one
         assert test_case["two"]["one"] == instance.two.one
         assert test_case["three"] == instance.three
-        assert test_case == instance.__deserialize_raw__
-        assert test_case["two"] == instance.two.__deserialize_raw__
+        assert test_case == instance.__deserialize_raw__  # type: ignore
+        assert test_case["two"] == instance.two.__deserialize_raw__  # type: ignore
 
 
 # ============================================================================
@@ -129,7 +129,10 @@ def test_raw_storage_with_primitives() -> None:
     assert instance.value == 42
     # The instance itself should have raw data
     assert hasattr(instance, "__deserialize_raw__")
-    assert instance.__deserialize_raw__ == data
+    assert (
+        instance.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == data
+    )
 
 
 def test_raw_storage_nested_root_mode() -> None:
@@ -152,7 +155,10 @@ def test_raw_storage_nested_root_mode() -> None:
 
     # Root should have raw data
     assert hasattr(instance, "__deserialize_raw__")
-    assert instance.__deserialize_raw__ == data
+    assert (
+        instance.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == data
+    )
 
     # Nested object should NOT have raw data
     assert not hasattr(instance.inner, "__deserialize_raw__")
@@ -178,11 +184,17 @@ def test_raw_storage_nested_all_mode() -> None:
 
     # Root should have raw data
     assert hasattr(instance, "__deserialize_raw__")
-    assert instance.__deserialize_raw__ == data
+    assert (
+        instance.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == data
+    )
 
     # Nested object SHOULD have raw data
     assert hasattr(instance.inner, "__deserialize_raw__")
-    assert instance.inner.__deserialize_raw__ == {"inner_value": 2}
+    assert (
+        instance.inner.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == {"inner_value": 2}
+    )
 
 
 def test_raw_storage_with_lists() -> None:
@@ -206,7 +218,10 @@ def test_raw_storage_with_lists() -> None:
     assert hasattr(instance_all, "__deserialize_raw__")
     for i, item in enumerate(instance_all.items):
         assert hasattr(item, "__deserialize_raw__")
-        assert item.__deserialize_raw__ == {"value": i + 1}
+        assert (
+            item.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+            == {"value": i + 1}
+        )
 
     # ROOT mode - only container has raw data
     instance_root = deserialize(Container, data, raw_storage_mode=RawStorageMode.ROOT)
@@ -240,13 +255,22 @@ def test_raw_storage_deeply_nested() -> None:
 
     # Check all levels have raw data
     assert hasattr(instance, "__deserialize_raw__")
-    assert instance.__deserialize_raw__ == data
+    assert (
+        instance.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == data
+    )
 
     assert hasattr(instance.level2, "__deserialize_raw__")
-    assert instance.level2.__deserialize_raw__ == {"level3": {"value": 42}}
+    assert (
+        instance.level2.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == {"level3": {"value": 42}}
+    )
 
     assert hasattr(instance.level2.level3, "__deserialize_raw__")
-    assert instance.level2.level3.__deserialize_raw__ == {"value": 42}
+    assert (
+        instance.level2.level3.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == {"value": 42}
+    )
 
 
 def test_raw_storage_with_union() -> None:
@@ -272,7 +296,10 @@ def test_raw_storage_with_union() -> None:
 
     assert hasattr(instance_a, "__deserialize_raw__")
     assert hasattr(instance_a.either, "__deserialize_raw__")
-    assert instance_a.either.__deserialize_raw__ == {"a_value": 42}
+    assert (
+        instance_a.either.__deserialize_raw__  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        == {"a_value": 42}
+    )
 
 
 def test_raw_storage_with_dict_values() -> None:
@@ -294,9 +321,17 @@ def test_raw_storage_with_dict_values() -> None:
 
     assert hasattr(instance, "__deserialize_raw__")
     assert hasattr(instance.mapping["key1"], "__deserialize_raw__")
-    assert instance.mapping["key1"].__deserialize_raw__ == {"data": 1}
+    assert instance.mapping[
+        "key1"
+    ].__deserialize_raw__ == {  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        "data": 1
+    }
     assert hasattr(instance.mapping["key2"], "__deserialize_raw__")
-    assert instance.mapping["key2"].__deserialize_raw__ == {"data": 2}
+    assert instance.mapping[
+        "key2"
+    ].__deserialize_raw__ == {  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        "data": 2
+    }
 
 
 def test_raw_storage_none_mode() -> None:

@@ -106,7 +106,10 @@ def test_complex_api_response() -> None:
     assert response.user.username == "john_doe"
     assert response.user.created_at == datetime.datetime(2024, 1, 15, 10, 30, 0)
     assert response.user.is_active is True  # Default value used
-    assert response.user.user_metadata["role"] == "admin"
+    assert response.user.user_metadata is not None
+    assert (
+        response.user.user_metadata["role"] == "admin"  # pyright: ignore[reportOptionalSubscript]
+    )
 
     # Verify downcast events
     assert len(response.recent_events) == 2
@@ -124,7 +127,10 @@ def test_complex_api_response() -> None:
 
     # Verify raw storage
     assert hasattr(response, "__deserialize_raw__")
-    assert response.__deserialize_raw__ == data
+    assert (
+        response.__deserialize_raw__  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+        == data
+    )
 
 
 def test_complex_ecommerce_scenario() -> None:
@@ -140,9 +146,9 @@ def test_complex_ecommerce_scenario() -> None:
         price: float
         quantity: int
 
-    def calculate_total(order):
+    def calculate_total(order: "Order"):
         """Calculate order total."""
-        order.total = sum(item.price * item.quantity for item in order.items)
+        order.total = sum(item.price * item.quantity for item in order.items)  # type: ignore
 
     @key("order_number", "orderNo")
     @parser("order_date", datetime.datetime.fromisoformat)
@@ -180,7 +186,9 @@ def test_complex_ecommerce_scenario() -> None:
 
     # Verify constructed total
     assert hasattr(order, "total")
-    assert order.total == (29.99 * 2) + (49.99 * 1)
+    assert order.total == (  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+        29.99 * 2
+    ) + (49.99 * 1)
 
 
 def test_nested_unions_and_optionals() -> None:
@@ -225,7 +233,11 @@ def test_nested_unions_and_optionals() -> None:
     assert isinstance(config.settings["wrapped_int"], IntValue)
     assert config.settings["wrapped_int"].value == 42
 
+    assert config.optional_nested is not None
+
     assert len(config.optional_nested) == 3
-    assert config.optional_nested[0]["key1"] == "value1"
+    assert config.optional_nested[0] is not None
+    assert config.optional_nested[0]["key1"] == "value1"  # pyright: ignore[reportOptionalSubscript]
     assert config.optional_nested[1] is None
-    assert config.optional_nested[2]["key3"] == "value3"
+    assert config.optional_nested[2] is not None
+    assert config.optional_nested[2]["key3"] == "value3"  # pyright: ignore[reportOptionalSubscript]

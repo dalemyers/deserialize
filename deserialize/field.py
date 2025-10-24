@@ -1,10 +1,13 @@
 """Field configuration for type-hint based deserialization."""
 
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar
 
 
 # Sentinel value to indicate no default was provided
 _MISSING = object()
+
+# Type variable for field values
+_T = TypeVar("_T")
 
 
 class Field:
@@ -30,14 +33,20 @@ class Field:
 
     __slots__ = ("alias", "default", "parser", "ignore", "_has_default")
 
+    alias: str | None
+    default: Any
+    parser: Callable[[Any], Any] | None
+    ignore: bool
+    _has_default: bool
+
     def __init__(
         self,
         *,
         alias: str | None = None,
         default: Any = _MISSING,
-        parser: Callable | None = None,
+        parser: Callable[[Any], Any] | None = None,
         ignore: bool = False,
-    ):
+    ) -> None:
         self.alias = alias
         self.default = default
         self.parser = parser
@@ -51,8 +60,8 @@ class Field:
         """
         return self._has_default
 
-    def __repr__(self):
-        parts = []
+    def __repr__(self) -> str:
+        parts: list[str] = []
         if self.alias is not None:
             parts.append(f"alias={self.alias!r}")
         if self._has_default:
