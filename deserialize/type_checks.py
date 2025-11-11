@@ -103,3 +103,38 @@ def dict_content_types(type_value: Any, debug_name: str) -> tuple[Any, ...]:
         raise TypeError(f"{type_value} is not a dict type for {debug_name}")
 
     return typing.get_args(type_value)
+
+
+def is_set(type_value: Any) -> bool:
+    """Check if a type is a set type."""
+
+    if type_value is set:
+        return True
+
+    if not is_typing_type(type_value):
+        return False
+
+    if not hasattr(type_value, "__origin__"):
+        return False
+
+    return typing.get_origin(type_value) == set
+
+
+def set_content_type(type_value: Any, debug_name: str) -> Any:
+    """Strip the set wrapper from a type.
+
+    e.g. set[int] -> int
+    """
+
+    if not is_set(type_value):
+        raise TypeError(f"{type_value} is not a set type for {debug_name}")
+
+    args = typing.get_args(type_value)
+
+    if len(args) == 0:
+        return typing.Any
+
+    if len(args) == 1:
+        return args[0]
+
+    raise TypeError(f"{type_value} should only have a single type for {debug_name}")

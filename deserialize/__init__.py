@@ -43,8 +43,10 @@ from deserialize.type_checks import (
     is_typing_type,
     is_list,
     is_dict,
+    is_set,
     list_content_type,
     dict_content_types,
+    set_content_type,
 )
 from deserialize.metadata_cache import get_class_metadata
 from deserialize.field import Field
@@ -82,8 +84,10 @@ __all__ = [
     "is_typing_type",
     "is_list",
     "is_dict",
+    "is_set",
     "list_content_type",
     "dict_content_types",
+    "set_content_type",
     # Field annotation support
     "Field",
     "Annotated",
@@ -251,6 +255,16 @@ def _deserialize(
         )
 
     if isinstance(data, list):
+        if is_set(class_reference):
+            return finalize(
+                _deserialize_set(
+                    class_reference,
+                    cast(list[Any], data),
+                    debug_name,
+                    throw_on_unhandled=throw_on_unhandled,
+                    raw_storage_mode=raw_storage_mode,
+                )
+            )
         return finalize(
             _deserialize_list(
                 class_reference,
@@ -319,6 +333,41 @@ def _deserialize_list(
             raw_storage_mode=raw_storage_mode.child_mode(),
         )
         output.append(deserialized)
+
+    return cast(T, output)
+
+
+def _deserialize_set(
+    class_reference: type[T],
+    list_data: list[Any],
+    debug_name: str,
+    *,
+    throw_on_unhandled: bool,
+    raw_storage_mode: RawStorageMode,
+) -> T:
+    if not is_set(class_reference):
+        raise DeserializeException(
+            f"Cannot deserialize a list to '{class_reference}' for {debug_name}"
+        )
+
+    if not isinstance(list_data, list):  # pyright: ignore[reportUnnecessaryIsInstance]
+        raise DeserializeException(
+            f"Cannot deserialize '{type(list_data)}' as a set for {debug_name}."
+        )
+
+    set_content_type_value = set_content_type(class_reference, debug_name)
+
+    output: set[Any] = set()
+
+    for index, item in enumerate(list_data):
+        deserialized = _deserialize(
+            set_content_type_value,
+            item,
+            f"{debug_name}[{index}]",
+            throw_on_unhandled=throw_on_unhandled,
+            raw_storage_mode=raw_storage_mode.child_mode(),
+        )
+        output.add(deserialized)
 
     return cast(T, output)
 

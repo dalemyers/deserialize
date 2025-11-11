@@ -16,9 +16,11 @@ from deserialize import (
     dict_content_types,
     is_dict,
     is_list,
+    is_set,
     is_typing_type,
     is_union,
     list_content_type,
+    set_content_type,
     union_types,
 )
 
@@ -167,6 +169,38 @@ def test_dict_content_types() -> None:
         _ = dict_content_types(tuple[list[int], int], "")
 
 
+def test_is_set() -> None:
+    """Test is_set."""
+    assert is_set(set[int])
+    assert is_set(set[str])
+    assert is_set(set[set[int]])
+    assert is_set(set[type(None)])  # type: ignore
+    assert is_set(set[dict[str, str]])
+    assert is_set(set[str | None])
+    assert is_set(set)
+
+    assert not is_set(int)
+    assert not is_set(set[int] | None)
+    assert not is_set(str | None)
+    assert not is_set(type(None))
+    assert not is_set(list[int])
+
+
+def test_set_content_type() -> None:
+    """Test set_content_type."""
+    assert set_content_type(set[int], "") == int
+    assert set_content_type(set[str], "") == str
+    assert set_content_type(set[dict[str, str]], "") == dict[str, str]
+    assert set_content_type(set[int | None], "") == int | None
+    assert set_content_type(set[set[int]], "") == set[int]
+
+    with pytest.raises(TypeError):
+        _ = set_content_type(int, "")
+
+    with pytest.raises(TypeError):
+        _ = set_content_type(tuple[set[int], int], "")
+
+
 # ============================================================================
 # Base Type Tests
 # ============================================================================
@@ -278,6 +312,14 @@ class DictClass:
     three: dict  # pyright: ignore[reportMissingTypeArgument]
 
 
+class SetClass:
+    """Basic set example."""
+
+    one: set[int]
+    two: set[int]
+    three: set  # pyright: ignore[reportMissingTypeArgument]
+
+
 @pytest.mark.parametrize(
     "value",
     [{"one": [1, 2, 3], "two": [1, 2, 3], "three": [1, 2, 3]}],
@@ -306,6 +348,18 @@ def test_generic_dicts(value: dict[str, Any]):
     assert value["one"] == instance.one
     assert value["two"] == instance.two
     assert value["three"] == instance.three  # pyright: ignore[reportUnknownMemberType]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [{"one": [1, 2, 3], "two": [1, 2, 3, 2], "three": [1, 2, 3]}],
+)
+def test_generic_sets(value: dict[str, Any]):
+    """Test that items with generic set types deserialize."""
+    instance = deserialize(SetClass, value)
+    assert {1, 2, 3} == instance.one
+    assert {1, 2, 3} == instance.two
+    assert {1, 2, 3} == instance.three  # pyright: ignore[reportUnknownMemberType]
 
 
 # ============================================================================
