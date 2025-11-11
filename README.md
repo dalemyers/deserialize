@@ -69,7 +69,37 @@ class MyThing:
 
 Now `None` is a valid value for these.
 
-Types can be nested as deep as you like. For example, this is perfectly valid:
+### Supported Collection Types
+
+The library natively supports the following collection types:
+
+- **`list`** - Ordered, mutable sequences
+  ```python
+  items: list[int]  # [1, 2, 3]
+  ```
+
+- **`dict`** - Key-value mappings
+  ```python
+  mapping: dict[str, int]  # {"a": 1, "b": 2}
+  ```
+
+- **`set`** - Unordered collections of unique elements (automatically removes duplicates)
+  ```python
+  tags: set[str]  # {"python", "rust", "go"}
+  ```
+
+- **`tuple`** - Immutable sequences
+  - Fixed-length with heterogeneous types:
+    ```python
+    coords: tuple[int, int]  # (10, 20)
+    rgb: tuple[int, int, int]  # (255, 128, 0)
+    ```
+  - Variable-length with homogeneous types:
+    ```python
+    values: tuple[int, ...]  # (1, 2, 3, 4, 5)
+    ```
+
+Collections can be nested arbitrarily. For example:
 
 ```python
 class Actor:
