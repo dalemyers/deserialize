@@ -44,9 +44,11 @@ from deserialize.type_checks import (
     is_list,
     is_dict,
     is_set,
+    is_tuple,
     list_content_type,
     dict_content_types,
     set_content_type,
+    tuple_content_types,
 )
 from deserialize.metadata_cache import get_class_metadata
 from deserialize.field import Field
@@ -85,9 +87,11 @@ __all__ = [
     "is_list",
     "is_dict",
     "is_set",
+    "is_tuple",
     "list_content_type",
     "dict_content_types",
     "set_content_type",
+    "tuple_content_types",
     # Field annotation support
     "Field",
     "Annotated",
@@ -265,6 +269,16 @@ def _deserialize(
                     raw_storage_mode=raw_storage_mode,
                 )
             )
+        if is_tuple(class_reference):
+            return finalize(
+                _deserialize_tuple(
+                    class_reference,
+                    cast(list[Any], data),
+                    debug_name,
+                    throw_on_unhandled=throw_on_unhandled,
+                    raw_storage_mode=raw_storage_mode,
+                )
+            )
         return finalize(
             _deserialize_list(
                 class_reference,
@@ -370,6 +384,65 @@ def _deserialize_set(
         output.add(deserialized)
 
     return cast(T, output)
+
+
+def _deserialize_tuple(
+    class_reference: type[T],
+    list_data: list[Any],
+    debug_name: str,
+    *,
+    throw_on_unhandled: bool,
+    raw_storage_mode: RawStorageMode,
+) -> T:
+    if not is_tuple(class_reference):
+        raise DeserializeException(
+            f"Cannot deserialize a list to '{class_reference}' for {debug_name}"
+        )
+
+    if not isinstance(list_data, list):  # pyright: ignore[reportUnnecessaryIsInstance]
+        raise DeserializeException(
+            f"Cannot deserialize '{type(list_data)}' as a tuple for {debug_name}."
+        )
+
+    tuple_types = tuple_content_types(class_reference, debug_name)
+
+    # Handle untyped tuple
+    if len(tuple_types) == 0:
+        return cast(T, tuple(list_data))
+
+    # Handle variable-length tuple (e.g., tuple[int, ...])
+    if len(tuple_types) == 2 and tuple_types[1] is Ellipsis:
+        element_type = tuple_types[0]
+        output: list[Any] = []
+        for index, item in enumerate(list_data):
+            deserialized = _deserialize(
+                element_type,
+                item,
+                f"{debug_name}[{index}]",
+                throw_on_unhandled=throw_on_unhandled,
+                raw_storage_mode=raw_storage_mode.child_mode(),
+            )
+            output.append(deserialized)
+        return cast(T, tuple(output))
+
+    # Handle fixed-length tuple (e.g., tuple[int, str, bool])
+    if len(list_data) != len(tuple_types):
+        raise DeserializeException(
+            f"Cannot deserialize list of length {len(list_data)} to tuple of length {len(tuple_types)} for {debug_name}"
+        )
+
+    output = []
+    for index, (item, expected_type) in enumerate(zip(list_data, tuple_types)):
+        deserialized = _deserialize(
+            expected_type,
+            item,
+            f"{debug_name}[{index}]",
+            throw_on_unhandled=throw_on_unhandled,
+            raw_storage_mode=raw_storage_mode.child_mode(),
+        )
+        output.append(deserialized)
+
+    return cast(T, tuple(output))
 
 
 def _deserialize_dict(

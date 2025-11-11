@@ -138,3 +138,31 @@ def set_content_type(type_value: Any, debug_name: str) -> Any:
         return args[0]
 
     raise TypeError(f"{type_value} should only have a single type for {debug_name}")
+
+
+def is_tuple(type_value: Any) -> bool:
+    """Check if a type is a tuple type."""
+
+    if type_value is tuple:
+        return True
+
+    if not is_typing_type(type_value):
+        return False
+
+    if not hasattr(type_value, "__origin__"):
+        return False
+
+    return typing.get_origin(type_value) == tuple
+
+
+def tuple_content_types(type_value: Any, debug_name: str) -> tuple[Any, ...]:
+    """Return the content types for a tuple.
+
+    e.g. tuple[int, str] -> (int, str)
+    e.g. tuple[int, ...] -> (int, Ellipsis)
+    """
+
+    if not is_tuple(type_value):
+        raise TypeError(f"{type_value} is not a tuple type for {debug_name}")
+
+    return typing.get_args(type_value)

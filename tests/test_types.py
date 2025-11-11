@@ -17,10 +17,12 @@ from deserialize import (
     is_dict,
     is_list,
     is_set,
+    is_tuple,
     is_typing_type,
     is_union,
     list_content_type,
     set_content_type,
+    tuple_content_types,
     union_types,
 )
 
@@ -201,6 +203,34 @@ def test_set_content_type() -> None:
         _ = set_content_type(tuple[set[int], int], "")
 
 
+def test_is_tuple() -> None:
+    """Test is_tuple."""
+    assert is_tuple(tuple[int, str])
+    assert is_tuple(tuple[int, int, int])
+    assert is_tuple(tuple[int, ...])
+    assert is_tuple(tuple)
+
+    assert not is_tuple(int)
+    assert not is_tuple(tuple[int, str] | None)
+    assert not is_tuple(str | None)
+    assert not is_tuple(type(None))
+    assert not is_tuple(list[int])
+
+
+def test_tuple_content_types() -> None:
+    """Test tuple_content_types."""
+    assert tuple_content_types(tuple[int, str], "") == (int, str)
+    assert tuple_content_types(tuple[int, int, int], "") == (int, int, int)
+    assert tuple_content_types(tuple[int, ...], "") == (int, Ellipsis)
+    assert tuple_content_types(tuple, "") == ()
+
+    with pytest.raises(TypeError):
+        _ = tuple_content_types(int, "")
+
+    with pytest.raises(TypeError):
+        _ = tuple_content_types(list[int], "")
+
+
 # ============================================================================
 # Base Type Tests
 # ============================================================================
@@ -320,6 +350,14 @@ class SetClass:
     three: set  # pyright: ignore[reportMissingTypeArgument]
 
 
+class TupleClass:
+    """Basic tuple example."""
+
+    one: tuple[int, int]
+    two: tuple[int, ...]
+    three: tuple  # pyright: ignore[reportMissingTypeArgument]
+
+
 @pytest.mark.parametrize(
     "value",
     [{"one": [1, 2, 3], "two": [1, 2, 3], "three": [1, 2, 3]}],
@@ -360,6 +398,18 @@ def test_generic_sets(value: dict[str, Any]):
     assert {1, 2, 3} == instance.one
     assert {1, 2, 3} == instance.two
     assert {1, 2, 3} == instance.three  # pyright: ignore[reportUnknownMemberType]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [{"one": [1, 2], "two": [1, 2, 3], "three": [1, 2, 3]}],
+)
+def test_generic_tuples(value: dict[str, Any]):
+    """Test that items with generic tuple types deserialize."""
+    instance = deserialize(TupleClass, value)
+    assert (1, 2) == instance.one
+    assert (1, 2, 3) == instance.two
+    assert (1, 2, 3) == instance.three  # pyright: ignore[reportUnknownMemberType]
 
 
 # ============================================================================
