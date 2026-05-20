@@ -27,7 +27,7 @@ classifiers = [
 python = "^3.10"
 
 [tool.poetry.dev-dependencies]
-black = "=25.9.0"
+black = "=26.3.1"
 mypy = "=1.18.2"
 pylint = "=3.3.9"
 pyright = "=1.1.406"
